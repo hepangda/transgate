@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.11)
+project(transgate)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "-lpthread -O2")
+aux_source_directory(./transgate/base SOURCE_BASE)
+aux_source_directory(./transgate/core SOURCE_CORE)
+aux_source_directory(./transgate/net SOURCE_NET)
+aux_source_directory(./transgate/http SOURCE_HTTP)
+aux_source_directory(./transgate/utils SOURCE_UTILS)
+add_executable(transgate main.cpp ${SOURCE_BASE} ${SOURCE_CORE} ${SOURCE_NET} ${SOURCE_HTTP} ${SOURCE_UTILS} transgate/http/http_user.cc transgate/http/http_user.h)
