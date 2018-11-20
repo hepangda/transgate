@@ -26,7 +26,7 @@ class TcpClient;
 
 class TcpServer : public TcpSocket /* Noncopyable, LinuxFile */ {
  public:
-  explicit TcpServer(int fd): TcpSocket(fd) {}
+//  explicit TcpServer(int fd): TcpSocket(fd) {}
   explicit TcpServer(const InetAddress &addr): server_addr_(std::make_unique<InetAddress>(addr)) {}
 
   TcpSocket accept();
@@ -46,4 +46,4 @@ class TcpServer : public TcpSocket /* Noncopyable, LinuxFile */ {
 
 }
 
-#endif //TRANSGATE_TCP_SERVER_H
+#endif // TRANSGATE_TCP_SERVER_H

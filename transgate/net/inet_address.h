@@ -35,4 +35,4 @@ class InetAddress final: public Copyable {
 
 }
 
-#endif //TRANSGATE_INET_ADDRESS_H
+#endif // TRANSGATE_INET_ADDRESS_H

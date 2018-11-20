@@ -25,10 +25,12 @@ namespace tg {
 class Buffer;
 class HeapBuffer;
 
-class TcpSocket: public Copyable, public LinuxFile {
+class TcpSocket : public Copyable, public LinuxFile {
  public:
   explicit TcpSocket(int fd) : socket_fd_(fd) {}
-  TcpSocket(): socket_fd_(socket(AF_INET, SOCK_STREAM, 0)) {}
+  explicit TcpSocket(const LinuxFile &linux_file) : socket_fd_(linux_file.fd()) {}
+  TcpSocket() : socket_fd_(socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)) {}
+  virtual ~TcpSocket() { if (socket_fd_ == -1) close(); }
 
   int read(void *buffer, int length, int flags = 0) const;
   int read(HeapBuffer &buffer, int length = -1, int flags = 0) const;
@@ -40,12 +42,12 @@ class TcpSocket: public Copyable, public LinuxFile {
   int setNonblockAndCloseExec();
   int setNonblock();
 
-  int close() const;
+  int close();
   int fd() const override;
  private:
-  int socket_fd_;
+  int socket_fd_ = -1;
 };
 
 }
 
-#endif //TRANSGATE_TCP_SOCKET_H
+#endif // TRANSGATE_TCP_SOCKET_H

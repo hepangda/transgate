@@ -28,7 +28,6 @@
 
 namespace tg {
 
-
 class ThreadPool : public Noncopyable {
  public:
   using Task = std::function<void()>;
@@ -61,4 +60,4 @@ class ThreadPool : public Noncopyable {
 
 }
 
-#endif //TRANSGATE_THREAD_POOL_H
+#endif // TRANSGATE_THREAD_POOL_H

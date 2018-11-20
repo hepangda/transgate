@@ -50,4 +50,4 @@ enum HttpFlags {
 
 }
 
-#endif //TRANSGATE_HTTP_TYPES_H
+#endif // TRANSGATE_HTTP_TYPES_H

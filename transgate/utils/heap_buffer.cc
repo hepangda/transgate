@@ -12,10 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <cassert>
-#include <algorithm>
-
 #include "heap_buffer.h"
+
+#include <cassert>
 
 namespace tg {
 
@@ -46,8 +45,12 @@ void HeapBuffer::doRead(int bytes) {
   readed_bytes_ += bytes;
 
   // TODO: if the diff of readed_bytes and writed_bytes are less than a specific value, move and reset
+  int diff = writed_bytes_ - readed_bytes_;
+  if (diff <= 128 && readed_bytes_ >= length() / 5) {
+    for (int i = 0; i < diff; i++) {
 
-  if (readed_bytes_ == writed_bytes_) {
+    }
+  } else if (diff == 0) {
     readed_bytes_ = writed_bytes_ = 0;
   }
 }

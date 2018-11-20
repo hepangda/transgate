@@ -22,15 +22,8 @@ namespace {
 inline bool isheader(char c) {
   return isalnum(c) || c == '-' || c == '_';
 }
-}
 
-HttpParser::Errors HttpParser::doParse() {
-  static constexpr char CR = '\r';
-  static constexpr char LF = '\n';
-  static const StringView length_key("Content-Length");
-  static const StringView connection_key("Connection");
-  static const StringView keep_alive_value("Keep-Alive");
-  static const StringView close_value("Close");
+inline bool isuri(char c) {
   static bool isuri[] = {
 /*0   nul    soh    stx    etx    eot    enq    ack    bel     7*/
       false, false, false, false, false, false, false, false,
@@ -66,232 +59,235 @@ HttpParser::Errors HttpParser::doParse() {
       true, true, true, false, false, false, false, false
   };
 
-  enum {
-    kBegin,
+  return (c >= 0) ? isuri[c] : false;
+}
+}
 
-    kMetOptions,
-    kMetHead,
-    kMetGet,
-    kMetPost,
-    kMetAlmostDone,
-    kMetDone,
+bool HttpParser::isEnoughToParse() {
+  // A complete request's should greater than 18 bytes
+  // GET / HTTP/1.0
+  // method : 3 bytes at least
+  // spaces : 2 bytes
+  // uri    : 1 bytes at least
+  // version: 8 bytes at least
+  // CRLF   : 4 bytes at least
 
-    kUriStart,
-    kUri,
-    kUriEnd,
-
-    kVerH,
-    kVerHt,
-    kVerHtt,
-    kVerHttp,
-    kVerHttpSlash,
-    kVerMajor,
-    kVerDot,
-    kVerMinor,
-    kVerEnd,
-
-    kCR,
-    kCRLF,
-    kCRLFCR,
-    kCRLFCRLF,
-
-    kHeader,
-    kColon,
-    kValue,
-    kDied,
-  } state = kBegin;
-
-  Errors err = kEFine;
-
-  if (stream_->readable() < 8) {
-    state = kDied;
-    err = kELowBufferLength;
+  switch (f_.state) {
+  case kHPSBegin:
+  case kHPSMetOptions:
+  case kHPSMetGet:
+  case kHPSMetPost:
+  case kHPSMetHead:
+    return stream_->readable() >= 18;
+  case kHPSMetAlmostDone:
+  case kHPSMetDone:
+  case kHPSUriStart:
+    return stream_->readable() >= 14;
+  case kHPSUri:
+  case kHPSUriEnd:
+  case kHPSVerHttpSlash:
+    return stream_->readable() >= 12;
+  case kHPSVerMajor:
+    return stream_->readable() >= 11;
+  case kHPSVerDot:
+  case kHPSHeader:
+  case kHPSColon:
+  case kHPSValue:
+    return stream_->readable() >= 5;
+  case kHPSVerMinor:
+  case kHPSVerEnd:
+    return stream_->readable() >= 4;
+  case kHPSCR:
+    return stream_->readable() >= 3;
+  case kHPSCRLF:
+    return stream_->readable() >= 2;
+  case kHPSCRLFCR:
+    return stream_->readable() >= 1;
+  case kHPSCRLFCRLF:
+    return true;
+  case kHPSDied:
+    return false;
   }
 
-  HttpMethod method = kHMInvalid;
-  const char *uri_starts = nullptr;
-  int uri_length = 1;
-  int ver_major = 0, ver_minor = 0;
-  const char *header_starts = nullptr, *value_starts = nullptr;
-  int header_length = 1, value_length = 1;
-  int content_length = 0;
-  bool keep_alive = true, keep_alive_set = false;
+  return false;
+}
 
-#define StateMap(cond, next_state) if (cond) \
-                                    {  state = next_state; break; }
-#define StateMapR(cond, next_state, something) if (cond) \
-                                               { state = next_state; { something; } break; }
-#define Reject(e) state = kDied; err = e; break;
+bool HttpParser::parseOnce() {
+  static constexpr char CR = '\r';
+  static constexpr char LF = '\n';
+  static constexpr size_t kBufferSize = 8;
+  static const char *length_key = "Content-Length";
+  static const char *connection_key = "Connection";
+  static const char *keep_alive_value = "Keep-Alive";
+  static const char *close_value = "Close";
 
-  const char *p = stream_->rptr();
-  for (; state != kDied && stream_->readable() != 0; stream_->doRead(1), p++) {
-    const char c = *p;
+  char buffer[kBufferSize];
 
-    switch (state) {
-    case kBegin:
-      StateMap(c == ' ', kBegin);
-      StateMap(c == 'O', kMetOptions);
-      StateMap(c == 'G', kMetGet);
-      StateMap(c == 'H', kMetHead);
-      StateMap(c == 'P', kMetPost);
-      Reject(kEInvalidMethod);
-    case kMetOptions: {
-      const char c2 = *++p, c3 = *++p, c4 = *++p, c5 = *++p, c6 = *++p;
-      stream_->doRead(5);
-      StateMapR(c == 'P' && c2 == 'T' && c3 == 'I' && c4 == 'O' && c5 == 'N' && c6 == 'S',
-                kMetAlmostDone,
-                method = kHMOptions);
-      Reject(kEInvalidMethod)
-    }
-    case kMetGet: {
-      const char c2 = *++p;
-      stream_->doRead(1);
-      StateMapR(c == 'E' && c2 == 'T', kMetAlmostDone, method = kHMGet);
-      Reject(kEInvalidMethod);
-    }
-    case kMetHead: {
-      const char c2 = *++p, c3 = *++p;
-      stream_->doRead(2);
-      StateMapR(c == 'E' && c2 == 'A' && c3 == 'D', kMetAlmostDone, method = kHMHead);
-      Reject(kEInvalidMethod);
-    }
-    case kMetPost: {
-      const char c2 = *++p, c3 = *++p;
-      stream_->doRead(2);
-      StateMapR(c == 'O' && c2 == 'S' && c3 == 'T', kMetAlmostDone, method = kHMPost);
-      Reject(kEInvalidMethod);
-    }
-    case kMetAlmostDone:
-      StateMap(c == ' ', kMetDone);
-      Reject(kEInvalidMethod);
-    case kMetDone:
-      StateMap(c == ' ', kMetDone);
-      StateMapR(isuri[c], kUriStart, uri_starts = p);
-      Reject(kEInvalidUri);
-    case kUriStart:
-      StateMap(c == ' ', kUriEnd);
-      StateMapR(isuri[c], kUri, ++uri_length);
-      Reject(kEInvalidUri);
-    case kUri:
-      StateMapR(isuri[c], kUri, ++uri_length);
-      StateMap(c == ' ', kUriEnd);
-      Reject(kEInvalidUri)
-    case kUriEnd:
-      StateMap(c == 'H', kVerH);
-      Reject(kEInvalidVersion);
-    case kVerH:
-      StateMap(c == 'T', kVerHt);
-      Reject(kEInvalidVersion);
-    case kVerHt:
-      StateMap(c == 'T', kVerHtt);
-      Reject(kEInvalidVersion);
-    case kVerHtt:
-      StateMap(c == 'P', kVerHttp);
-      Reject(kEInvalidVersion);
-    case kVerHttp:
-      StateMap(c == '/', kVerHttpSlash);
-      Reject(kEInvalidVersion);
-    case kVerHttpSlash:
-      StateMapR(isdigit(c), kVerMajor, ver_major = c - '0');
-      Reject(kEInvalidVersion);
-    case kVerMajor:
-      StateMapR(isdigit(c), kVerMajor, (ver_major *= 10, ver_major += c - '0'));
-      StateMap(c == '.', kVerDot);
-      Reject(kEInvalidVersion);
-    case kVerDot:
-      StateMapR(isdigit(c), kVerMinor, ver_minor = c - '0');
-      StateMap(c == CR, kVerEnd);
-      Reject(kEInvalidVersion);
-    case kVerMinor:
-      StateMapR(isdigit(c), kVerMinor, (ver_minor *= 10, ver_minor += c - '0'));
-      StateMap(c == CR, kVerEnd);
-      Reject(kEInvalidVersion);
-    case kVerEnd:
-      StateMapR((ver_major != 1 && (ver_minor != 0 && ver_minor != 1)), kDied, err = kEUnsupportedVersion);
-      StateMap(c == LF, kCRLF);
-      Reject(kEInvalidVersion);
-    case kCR: {
-      StringView header{header_starts, header_length},
-          value{value_starts, value_length};
+#define stmap(cond, nextstate) if (cond) { f_.state = nextstate; break; }
+#define stmapr(cond, nextstate, sth) if (cond) { f_.state = nextstate; { sth; } break; }
+#define stmaprc(cond, nextstate, sth) if (cond) { f_.state = nextstate; { sth; } continue; }
+#define reject(e) f_.state = kHPSDied; f_.err = e; break;
+#define strequ(str, len) memcmp(buffer, str, len) == 0
+
+  while (f_.state != kHPSDied && stream_->readable() != 0) {
+    const char c = stream_->peek();
+    switch (f_.state) {
+    case kHPSBegin:
+      stmap(c == ' ', kHPSBegin);
+      stmap(c == 'O', kHPSMetOptions);
+      stmap(c == 'G', kHPSMetGet);
+      stmap(c == 'H', kHPSMetHead);
+      stmap(c == 'P', kHPSMetPost);
+      reject(kHPEInvalidMethod);
+    case kHPSMetOptions:
+      stream_->read(buffer, 6);
+      stmaprc(strequ("PTIONS", 6), kHPSMetAlmostDone, f_.method = kHMOptions);
+      reject(kHPEInvalidMethod)
+    case kHPSMetGet:
+      stream_->read(buffer, 2);
+      stmaprc(strequ("ET", 2), kHPSMetAlmostDone, f_.method = kHMGet);
+      reject(kHPEInvalidMethod);
+    case kHPSMetHead:
+      stream_->read(buffer, 3);
+      stmaprc(strequ("EAD", 3), kHPSMetAlmostDone, f_.method = kHMHead);
+      reject(kHPEInvalidMethod);
+    case kHPSMetPost:
+      stream_->read(buffer, 3);
+      stmaprc(strequ("OST", 3), kHPSMetAlmostDone, f_.method = kHMPost);
+      reject(kHPEInvalidMethod);
+    case kHPSMetAlmostDone:
+      stmap(c == ' ', kHPSMetDone);
+      reject(kHPEInvalidMethod);
+    case kHPSMetDone:
+      stmap(c == ' ', kHPSMetDone);
+      stmapr(isuri(c), kHPSUriStart, f_.uri_starts = stream_->readptr());
+      reject(kHPEInvalidUri);
+    case kHPSUriStart:
+      stmap(c == ' ', kHPSUriEnd);
+      stmapr(isuri(c), kHPSUri, ++f_.uri_length);
+      reject(kHPEInvalidUri);
+    case kHPSUri:
+      stmapr(isuri(c), kHPSUri, ++f_.uri_length);
+      stmap(c == ' ', kHPSUriEnd);
+      reject(kHPEInvalidUri)
+    case kHPSUriEnd:
+      stream_->read(buffer, 5);
+      stmaprc(strequ("HTTP/", 5), kHPSVerHttpSlash, ;);
+      reject(kHPEInvalidVersion);
+    case kHPSVerHttpSlash:
+      stmapr(isdigit(c), kHPSVerMajor, f_.ver_major = c - '0');
+      reject(kHPEInvalidVersion);
+    case kHPSVerMajor:
+      stmapr(isdigit(c), kHPSVerMajor, (f_.ver_major *= 10, f_.ver_major += c - '0'));
+      stmap(c == '.', kHPSVerDot);
+      reject(kHPEInvalidVersion);
+    case kHPSVerDot:
+      stmapr(isdigit(c), kHPSVerMinor, f_.ver_minor = c - '0');
+      stmap(c == CR, kHPSVerEnd);
+      reject(kHPEInvalidVersion);
+    case kHPSVerMinor:
+      stmapr(isdigit(c), kHPSVerMinor, (f_.ver_minor *= 10, f_.ver_minor += c - '0'));
+      stmap(c == CR, kHPSVerEnd);
+      reject(kHPEInvalidVersion);
+    case kHPSVerEnd:
+      stmapr((f_.ver_major != 1 && (f_.ver_minor != 0 && f_.ver_minor != 1)),
+             kHPSDied,
+             f_.err = kHPEUnsupportedVersion);
+      stmap(c == LF, kHPSCRLF);
+      reject(kHPEInvalidVersion);
+    case kHPSCR: {
+      StringView header{f_.header_starts, f_.header_length},
+          value{f_.value_starts, f_.value_length};
 
       request_->set_field(header, value);
-      header_starts = value_starts = nullptr;
-      header_length = value_length = 1;
+      f_.header_starts = f_.value_starts = nullptr;
+      f_.header_length = f_.value_length = 1;
 
       if (header.equalsWithoutCase(length_key)) {
         for (int i = 0; i < value.readable(); i++) {
           if (isdigit(value.rptr()[i])) {
-            content_length *= 10;
-            content_length += value.rptr()[i] - '0';
+            f_.content_length *= 10;
+            f_.content_length += value.rptr()[i] - '0';
           } else {
-            content_length = -1;
+            f_.content_length = -1;
           }
         }
-        if (content_length == -1) {
-          Reject(kEInvalidContentLength);
+        if (f_.content_length == -1) {
+          reject(kHPEInvalidContentLength);
         }
       }
 
       if (header.equalsWithoutCase(connection_key)) {
-        keep_alive_set = true;
+        f_.keep_alive_set = true;
         if (value.equalsWithoutCase(keep_alive_value)) {
-          keep_alive = true;
+          f_.keep_alive = true;
         } else if (value.equalsWithoutCase(close_value)) {
-          keep_alive = false;
+          f_.keep_alive = false;
         } else {
-          Reject(kEInvalidHeader);
+          reject(kHPEInvalidHeader);
         }
       }
-      StateMap(c == LF, kCRLF);
-      Reject(kECRLF);
+      stmap(c == LF, kHPSCRLF);
+      reject(kHPECRLF);
     }
-    case kCRLF:
-      StateMap(c == CR, kCRLFCR);
-      StateMapR(isheader(c), kHeader, header_starts = p);
-      Reject(kEInvalidHeader);
-    case kCRLFCR:
-      StateMap(c == LF, kCRLFCRLF);
-      Reject(kECRLF);
-    case kCRLFCRLF:
-      Reject(kEFine);
-    case kHeader:
-      StateMapR(isheader(c), kHeader, ++header_length);
-      StateMap(c == ':', kColon);
-      Reject(kEUnrecognizedChar);
-    case kColon:
-      StateMap(c == ' ', kColon);
-      StateMapR(isuri[c], kValue, value_starts = p);
-      Reject(kEUnrecognizedChar);
-    case kValue:
-      StateMapR(isuri[c], kValue, ++value_length);
-      StateMap(c == CR, kCR);
+    case kHPSCRLF:
+      stmap(c == CR, kHPSCRLFCR);
+      stmapr(isheader(c), kHPSHeader, f_.header_starts = stream_->readptr());
+      reject(kHPEInvalidHeader);
+    case kHPSCRLFCR:
+      stmap(c == LF, kHPSCRLFCRLF);
+      reject(kHPECRLF);
+    case kHPSCRLFCRLF:
+    reject(kHPEFine);
+    case kHPSHeader:
+      stmapr(isheader(c), kHPSHeader, ++f_.header_length);
+      stmap(c == ':', kHPSColon);
+      reject(kHPEUnrecognizedChar);
+    case kHPSColon:
+      stmap(c == ' ', kHPSColon);
+      stmapr(isuri(c), kHPSValue, f_.value_starts = stream_->readptr());
+      reject(kHPEUnrecognizedChar);
+    case kHPSValue:
+      stmapr(isuri(c), kHPSValue, ++f_.value_length);
+      stmap(c == CR, kHPSCR);
+      reject(kHPEUnrecognizedChar);
     default:
-      Reject(kEUnexceptedEnd);
+    reject(kHPEUnexceptedEnd);
     }
+    stream_->read(1);
   }
 
-#undef StateMap
-#undef StateMap
-#undef StateMapR
-#undef Reject
+#undef stmap
+#undef stmapr
+#undef stmaprc
+#undef reject
+#undef strequ
 
-  if (stream_->readable() < content_length) {
-    err = kEEntityTooLarge;
+  return f_.state == kHPSDied;
+}
+
+void HttpParser::setParseResult() {
+  // TODO: FIX MAGIC NUMBER
+  if (f_.content_length >= 200000) {
+
   }
 
-  switch (err) {
+  if (stream_->readable() < f_.content_length) {
+    f_.err = kHPEEntityTooLarge;
+  }
 
-  case kEFine:
-    request_->set_method(method);
-    request_->set_uri({uri_starts, uri_length});
+  switch (f_.err) {
+  case kHPEFine:
+    request_->set_method(f_.method);
+    request_->set_uri({f_.uri_starts, f_.uri_length});
     break;
-  case kEUnsupportedVersion:
+  case kHPEUnsupportedVersion:
     request_->set_code(kHCHttpVersionNotSupported);
     break;
-  case kEInvalidMethod:
+  case kHPEInvalidMethod:
     request_->set_code(kHCNotImplemented);
     break;
-  case kEEntityTooLarge:
+  case kHPEEntityTooLarge:
     request_->set_code(kHCRequestEntityTooLarge);
     break;
   default:
@@ -299,18 +295,16 @@ HttpParser::Errors HttpParser::doParse() {
     break;
   }
 
-  if (!keep_alive_set) {
-    keep_alive = (ver_major != 0);
+  if (!f_.keep_alive_set) {
+    f_.keep_alive = (f_.ver_major != 0);
   }
 
-  if (keep_alive) {
+  if (f_.keep_alive) {
     request_->set_flag(kHFKeepAlive);
   }
 
-  request_->set_content_starts(p);
-  request_->set_content_length(content_length);
-
-  return err;
+  request_->set_content_starts(stream_->readptr());
+  request_->set_content_length(f_.content_length);
 }
 
 }

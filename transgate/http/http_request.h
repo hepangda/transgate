@@ -58,4 +58,4 @@ class HttpRequest : public Noncopyable {
 };
 
 }
-#endif //TRANSGATE_HTTP_REQUEST_H
+#endif // TRANSGATE_HTTP_REQUEST_H

@@ -23,4 +23,4 @@ class Copyable {
 
 }
 
-#endif //TRANSGATE_COPYABLE_H
+#endif // TRANSGATE_COPYABLE_H

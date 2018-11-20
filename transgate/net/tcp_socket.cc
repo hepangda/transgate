@@ -63,8 +63,12 @@ int TcpSocket::fd() const {
   return socket_fd_;
 }
 
-int TcpSocket::close() const {
-  return ::close(socket_fd_);
+int TcpSocket::close() {
+  int ret = ::close(socket_fd_);
+  if (ret != -1) {
+    socket_fd_ = -1;
+  }
+  return ret;
 }
 
 int TcpSocket::setNonblockAndCloseExec() {

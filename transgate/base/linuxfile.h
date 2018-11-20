@@ -28,4 +28,4 @@ class LinuxFile {
 
 }
 
-#endif //TRANSGATE_LINUXFILE_H
+#endif // TRANSGATE_LINUXFILE_H

@@ -20,6 +20,7 @@
 #include "epoll_event.h"
 #include "../base/linuxfile.h"
 #include "../base/noncopyable.h"
+#include "epoll_event_result.h"
 
 namespace tg {
 
@@ -33,21 +34,49 @@ class Epoll final : public LinuxFile, public Noncopyable {
 
   int fd() const override { return epoll_fd_; }
 
-  void wait(EpollEventResult &result);
-  void waitUntil(EpollEventResult &result, int timeout);
+  void wait(EpollEventResult &result) { waitUntil(result, WaitForever()); }
+  void waitUntil(EpollEventResult &result, int timeout) {
+    int events_triggered =
+        epoll_wait(epoll_fd_, reinterpret_cast<epoll_event *>(result.store_.get()), result.space_size_, timeout);
 
-  int add(EpollEvent &event) const;
-  int add(EpollEvent &&event) const;
+    result.set_length(events_triggered);
+  }
 
-  int remove(EpollEvent &event) const;
-  int remove(const LinuxFile &linux_file) const;
+  int add(EpollEvent &event) const {
+    return epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, event.event_fd(), event.pointer());
+  }
+  int add(EpollEvent &&event) const {
+    return epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, event.event_fd(), event.pointer());
+  }
+  int add(const LinuxFile &linux_file, EpollEventType event_type) const {
+    return add({linux_file, event_type});
+  }
 
-  int modify(EpollEvent &event) const;
-  int modify(EpollEvent &&event) const;
+  int remove(EpollEvent &event) const {
+    return epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, event.event_fd(), event.pointer());
+  }
+  int remove(const EpollEvent &event) const {
+    EpollEvent evt { event };
+    return epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, evt.event_fd(), evt.pointer());
+  }
+  int remove(const LinuxFile &linux_file) const {
+    EpollEvent event { linux_file, EpollEventType(0) };
+    return epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, event.event_fd(), event.pointer());
+  }
+
+  int modify(EpollEvent &event) const {
+    return epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, event.event_fd(), event.pointer());
+  }
+  int modify(EpollEvent &&event) const {
+    return epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, event.event_fd(), event.pointer());
+  }
+  int modify(const LinuxFile &linux_file, EpollEventType event_type) const {
+    return modify({linux_file, event_type});
+  }
  private:
   int epoll_fd_;
 };
 
 }
 
-#endif //TRANSGATE_EPOLL_H
+#endif // TRANSGATE_EPOLL_H

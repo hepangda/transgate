@@ -18,7 +18,6 @@
 #include "../utils/string_view.h"
 #include "../utils/heap_buffer.h"
 
-
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 namespace tg {
@@ -33,10 +32,9 @@ void Transgate::registerAccept() {
 
 void Transgate::run() {
   try {
-    server_.setNonblockAndCloseExec();
     server_.setVar(TcpServer::ReusePort);
     server_.bindAndListen();
-    printf("listen..\n");
+    printf("listen.. fd = %d\n", server_.fd());
     epoll_.add(EpollEvent(server_, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered)));
 
     EpollEventResult event_result{100};
@@ -45,17 +43,19 @@ void Transgate::run() {
       epoll_.wait(event_result);
 
       for (int i = 0; i < event_result.size(); i++) {
-        auto &it = event_result.at(i);
+        auto &it = event_result[i];
+
         if (it.event_fd() == server_.fd()) {
-          auto client = server_.accept();
-          client.setNonblock();
-          epoll_.add(EpollEvent(client, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered)));
-          epoll_.modify(EpollEvent(server_, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered)));
+            auto client = server_.accept();
+            perror("accept");
+            epoll_.add(client, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered));
+          perror("epad");
+          epoll_.modify(server_, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered));
         } else if (it.check(kEPSocketClosed)) {
-          epoll_.remove(TcpSocket(it.event_fd()));
+          epoll_.remove(it);
         } else if (it.check(kEPReadable)) {
-          TcpSocket client(it.event_fd());
-          HeapBuffer buffer(512);
+          TcpSocket client{it.event_fd()};
+          HeapBuffer buffer{512};
 
           client.read(buffer);
           int rt =
@@ -71,9 +71,6 @@ void Transgate::run() {
                                       "<html></html><html></html><html></html><html></html><html></html><html></html>"
                                       "<html></html><html></html><html></html><html></html><html></html><html></html>"
                                       "<html></html><html></html><html></html><html></html><html></html><html></html>"));
-          if (rt <= 0) {
-            perror("write");
-          }
           client.close();
         }
 

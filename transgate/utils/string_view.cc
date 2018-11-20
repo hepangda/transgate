@@ -39,11 +39,15 @@ bool StringView::equalsWithoutCase(const tg::StringView &rhs) const {
   return strncasecmp(ptr_, rhs.ptr_, static_cast<size_t>(length_)) == 0;
 }
 
+bool StringView::equalsWithoutCase(const char *rhs) const {
+  if (length_ != strlen(rhs)) return false;
+  return strncasecmp(ptr_, rhs, static_cast<size_t>(length_)) == 0;
+}
+
 std::ostream &operator<<(std::ostream &os, const StringView &view) {
-  for (int i = 0; i < view.readable(); ++i) {
-    os << view.rptr()[i];
-  }
+  os.write(view.rptr(), view.readable());
   return os;
 }
+
 
 }

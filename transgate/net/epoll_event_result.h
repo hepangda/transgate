@@ -31,10 +31,14 @@ class EpollEventResult final : public Noncopyable {
   explicit EpollEventResult(int size) : store_(new EpollEvent[size]), length_(0), space_size_(size) {}
 
   int size() const { return length_; }
-  const EpollEvent &at(int i) { return store_.get()[i]; }
-  const EpollEvent operator[] (int i) { return store_.get()[i]; }
+  const EpollEvent &at(int i) {
+    if (i >= length_)
+      throw std::out_of_range("`EpollEventResult::at` subscription overflow");
+    return store_[i];
+  }
+  const EpollEvent operator[] (int i) { return store_[i]; }
  private:
-  std::unique_ptr<EpollEvent> store_;
+  std::unique_ptr<EpollEvent[]> store_;
   int length_;
   int space_size_;
 

@@ -29,4 +29,4 @@ struct HttpUserHash {
 
 }
 
-#endif //TRANSGATE_HTTP_USER_H
+#endif // TRANSGATE_HTTP_USER_H

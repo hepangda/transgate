@@ -12,25 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_TCP_CLIENT_H
-#define TRANSGATE_TCP_CLIENT_H
+#include "transgate/core/tg.h"
+#include "transgate/utils/concurrency_proxy.h"
 
-#include "tcp_socket.h"
-#include "inet_address.h"
-
-namespace tg {
-
-class TcpClient : public TcpSocket /* Noncopyable, LinuxFile */ {
- public:
-//  TcpClient(): addr_(0) {}
-  TcpClient(int fd, const InetAddress &addr): TcpSocket(fd), addr_(addr) {}
-  TcpClient(int fd, InetAddress &&addr): TcpSocket(fd), addr_(addr) {}
-
-  InetAddress address() const { return addr_; }
- private:
-  InetAddress addr_;
-};
-
+int main(int argc, const char *argv[]) {
+  ConcurrencyProxy proxy{[] { tg::Transgate().run(); }};
+  return proxy.wait();
 }
-
-#endif // TRANSGATE_TCP_CLIENT_H

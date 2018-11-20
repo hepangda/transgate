@@ -12,25 +12,23 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_TCP_CLIENT_H
-#define TRANSGATE_TCP_CLIENT_H
 
-#include "tcp_socket.h"
-#include "inet_address.h"
+#ifndef TRANSGATE_READ_ONLY_BUFFER_H
+#define TRANSGATE_READ_ONLY_BUFFER_H
 
 namespace tg {
 
-class TcpClient : public TcpSocket /* Noncopyable, LinuxFile */ {
+/* interface */ class ReadOnlyBuffer {
  public:
-//  TcpClient(): addr_(0) {}
-  TcpClient(int fd, const InetAddress &addr): TcpSocket(fd), addr_(addr) {}
-  TcpClient(int fd, InetAddress &&addr): TcpSocket(fd), addr_(addr) {}
-
-  InetAddress address() const { return addr_; }
- private:
-  InetAddress addr_;
+  virtual int readable() const = 0;
+  virtual const char *readptr() const = 0;
+  virtual int read(void *dest, int bytes) = 0;
+  virtual int read(int bytes) = 0;
+  virtual char peek() const = 0;
+  virtual char peek(int nums) const = 0;
+  virtual int size() const = 0;
 };
 
 }
 
-#endif // TRANSGATE_TCP_CLIENT_H
+#endif // TRANSGATE_READ_ONLY_BUFFER_H

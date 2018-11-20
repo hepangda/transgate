@@ -30,10 +30,8 @@ class Transgate {
  private:
   TcpServer server_;
   Epoll epoll_;
-  ThreadPool tpool_;
 };
 
 }
 
-#endif //TRANSGATE_TG_H
--
+#endif // TRANSGATE_TG_H

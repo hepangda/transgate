@@ -47,4 +47,4 @@ class HeapBuffer : public Buffer, public Copyable {
 
 }
 
-#endif //TRANSGATE_HEAP_BUFFER_H
+#endif // TRANSGATE_HEAP_BUFFER_H

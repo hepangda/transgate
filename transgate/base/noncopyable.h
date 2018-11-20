@@ -23,11 +23,11 @@ class Noncopyable {
   Noncopyable(const Noncopyable &) = delete;
   Noncopyable &operator=(const Noncopyable &) = delete;
  protected:
-  // ｄeclared `protected` to avoid get instance of `Noncopyable` itself
+  // declared `protected` to avoid get instance of `Noncopyable` itself
   constexpr Noncopyable() = default;
   ~Noncopyable() = default;
 };
 
 }
 
-#endif //TRANSGATE_NONCOPYABLE_H
+#endif // TRANSGATE_NONCOPYABLE_H

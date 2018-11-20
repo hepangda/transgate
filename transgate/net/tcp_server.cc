@@ -12,22 +12,23 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include "tcp_server.h"
+
 #include <cassert>
 
-#include "tcp_server.h"
 #include "tcp_client.h"
 
 namespace tg {
 
 TcpSocket TcpServer::accept() {
-  return TcpSocket(::accept(fd(), nullptr, nullptr));
+  return TcpSocket(::accept4(fd(), nullptr, nullptr, SOCK_NONBLOCK));
 }
 
 TcpClient TcpServer::acceptWithAddress() {
   struct sockaddr_in addr = {};
   socklen_t socklen = sizeof(addr);
 
-  int client_fd = ::accept(fd(), reinterpret_cast<struct sockaddr *>(&addr), &socklen);
+  int client_fd = ::accept4(fd(), reinterpret_cast<struct sockaddr *>(&addr), &socklen, SOCK_NONBLOCK);
   return { client_fd, InetAddress(addr) };
 }
 
@@ -36,7 +37,7 @@ int TcpServer::bind() {
 }
 
 int TcpServer::listen() {
-  return ::listen(fd(), 10);
+  return ::listen(fd(), SOMAXCONN);
 }
 
 void TcpServer::bindAndListen() {

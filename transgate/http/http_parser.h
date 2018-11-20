@@ -18,38 +18,97 @@
 #include <memory>
 
 #include "../base/noncopyable.h"
-#include "../utils/buffer.h"
+#include "http_types.h"
+#include "../utils/read_only_buffer.h"
 
 namespace tg {
 
 class HttpRequest;
 
-class HttpParser: public Noncopyable {
+enum HttpParserState {
+  kHPSBegin,
+
+  kHPSMetOptions,
+  kHPSMetHead,
+  kHPSMetGet,
+  kHPSMetPost,
+  kHPSMetAlmostDone,
+  kHPSMetDone,
+
+  kHPSUriStart,
+  kHPSUri,
+  kHPSUriEnd,
+
+  kHPSVerHttpSlash,
+  kHPSVerMajor,
+  kHPSVerDot,
+  kHPSVerMinor,
+  kHPSVerEnd,
+
+  kHPSCR,
+  kHPSCRLF,
+  kHPSCRLFCR,
+  kHPSCRLFCRLF,
+
+  kHPSHeader,
+  kHPSColon,
+  kHPSValue,
+  kHPSDied,
+};
+
+enum HttpParserErrors {
+  kHPEFine,
+  kHPEParsed,
+  kHPEInvalidMethod,
+  kHPEInvalidUri,
+  kHPEInvalidVersion,
+  kHPEInvalidContentLength,
+  kHPEUnsupportedVersion,
+  kHPECRLF,
+  kHPEInvalidHeader,
+  kHPEUnrecognizedChar,
+  kHPEUnexceptedEnd,
+  kHPEEntityTooLarge,
+};
+
+struct HttpParserBuffer {
+  HttpParserState state = kHPSBegin;
+  HttpParserErrors err = kHPEFine;
+  HttpMethod method = kHMInvalid;
+
+  const char *uri_starts = nullptr;
+  const char *header_starts = nullptr;
+  const char *value_starts = nullptr;
+
+  int uri_length = 1;
+  int header_length = 1;
+  int value_length = 1;
+  int content_length = -1;
+
+  int ver_major = 0;
+  int ver_minor = 0;
+
+  bool keep_alive = true;
+  bool keep_alive_set = false;
+};
+
+class HttpParser : public Noncopyable {
  public:
-  HttpParser(std::shared_ptr<Buffer> stream, std::shared_ptr<HttpRequest> request)
+  HttpParser(std::shared_ptr<ReadOnlyBuffer> stream, std::shared_ptr<HttpRequest> request)
       : stream_(std::move(stream)), request_(std::move(request)) {}
 
-  enum Errors {
-    kEFine,
-    kELowBufferLength,
-    kEInvalidMethod,
-    kEInvalidUri,
-    kEInvalidVersion,
-    kEInvalidContentLength,
-    kEUnsupportedVersion,
-    kECRLF,
-    kEInvalidHeader,
-    kEUnrecognizedChar,
-    kEUnexceptedEnd,
-    kEEntityTooLarge,
-  };
+  HttpParserErrors restart();
 
-  Errors doParse();
  private:
-  std::shared_ptr<Buffer> stream_;
+  bool parseOnce();
+  void setParseResult();
+  bool isEnoughToParse();
+
+  std::shared_ptr<ReadOnlyBuffer> stream_;
   std::shared_ptr<HttpRequest> request_;
+  HttpParserBuffer f_;
 };
 
 }
 
-#endif //TRANSGATE_HTTP_PARSER_H
+#endif // TRANSGATE_HTTP_PARSER_H

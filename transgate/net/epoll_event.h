@@ -64,4 +64,4 @@ class EpollEvent final : public Copyable {
 
 }
 
-#endif //TRANSGATE_EPOLL_EVENT_H
+#endif // TRANSGATE_EPOLL_EVENT_H
