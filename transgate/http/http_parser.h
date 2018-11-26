@@ -57,8 +57,15 @@ enum HttpParserState {
 };
 
 enum HttpParserErrors {
+  // Not Finished
   kHPEFine,
-  kHPEParsed,
+  kHPENotAvailable,
+
+  // Parsed, but excepted content
+  kHPEExceptedContent,
+
+  // Finished
+  kHPEParsed,   // finish without errors
   kHPEInvalidMethod,
   kHPEInvalidUri,
   kHPEInvalidVersion,
@@ -97,12 +104,13 @@ class HttpParser : public Noncopyable {
   HttpParser(std::shared_ptr<ReadOnlyBuffer> stream, std::shared_ptr<HttpRequest> request)
       : stream_(std::move(stream)), request_(std::move(request)) {}
 
-  HttpParserErrors restart();
-
+  HttpParserErrors doParse();
+  bool isParsed() const { return f_.err != kHPEFine && f_.err != kHPENotAvailable; }
+  bool isFinished() const { return isParsed() && f_.err != kHPEExceptedContent; }
  private:
   bool parseOnce();
   void setParseResult();
-  bool isEnoughToParse();
+  bool parseable();
 
   std::shared_ptr<ReadOnlyBuffer> stream_;
   std::shared_ptr<HttpRequest> request_;

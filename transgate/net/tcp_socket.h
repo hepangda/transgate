@@ -19,6 +19,8 @@
 
 #include "../base/linuxfile.h"
 #include "../base/copyable.h"
+#include "../utils/char_buffer.h"
+#include <memory>
 
 namespace tg {
 
@@ -34,6 +36,7 @@ class TcpSocket : public Copyable, public LinuxFile {
 
   int read(void *buffer, int length, int flags = 0) const;
   int read(HeapBuffer &buffer, int length = -1, int flags = 0) const;
+  int read(std::shared_ptr<CharBuffer> &buffer, int length = -1, int flags = 0) const;
 
   int write(void *buffer, int length, int flags = 0) const;
   int write(Buffer &buffer, int length = -1, int flags = 0) const;

@@ -38,6 +38,19 @@ int TcpSocket::read(tg::HeapBuffer &buffer, int length, int flags) const {
   return readed_bytes;
 }
 
+int TcpSocket::read(std::shared_ptr<CharBuffer> &buffer, int length, int flags) const {
+  if (length == -1 || length > buffer->writeable()) {
+    length = buffer->writeable();
+  }
+
+  int read_bytes = static_cast<int>(::recv(socket_fd_, buffer->writeptr(), static_cast<size_t>(length), flags));
+  if (read_bytes != -1) {
+    buffer->write(read_bytes);
+  }
+
+  return read_bytes;
+}
+
 int TcpSocket::write(void *buffer, int length, int flags) const {
   return static_cast<int>(::send(socket_fd_, buffer, static_cast<size_t>(length), flags));
 }

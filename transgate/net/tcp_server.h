@@ -14,7 +14,7 @@
 
 #ifndef TRANSGATE_TCP_SERVER_H
 #define TRANSGATE_TCP_SERVER_H
-
+#include <functional>
 #include <memory>
 
 #include "tcp_socket.h"
@@ -29,8 +29,9 @@ class TcpServer : public TcpSocket /* Noncopyable, LinuxFile */ {
 //  explicit TcpServer(int fd): TcpSocket(fd) {}
   explicit TcpServer(const InetAddress &addr): server_addr_(std::make_unique<InetAddress>(addr)) {}
 
-  TcpSocket accept();
-  TcpClient acceptWithAddress();
+  std::unique_ptr<TcpSocket> accept();
+  void acceptAll(std::function<void(int)> cb);
+  std::unique_ptr<TcpClient> acceptWithAddress();
   int bind();
   int listen();
 

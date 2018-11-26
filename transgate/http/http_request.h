@@ -21,6 +21,7 @@
 #include "../utils/string_view.h"
 #include "../base/noncopyable.h"
 #include "http_types.h"
+#include "../utils/char_buffer.h"
 
 namespace tg {
 
@@ -34,7 +35,7 @@ class HttpRequest : public Noncopyable {
   void set_field(const StringView &key, const StringView &value) { fields_.emplace(key, value); }
   void set_content_starts(const char *content_starts) { content_starts_ = content_starts; }
   void set_content_length(int content_length) { content_length_ = content_length; }
-  void set_stream(std::shared_ptr<char> stream) { stream_ = std::move(stream); }
+  void set_stream(std::shared_ptr<CharBuffer> stream) { stream_ = std::move(stream); }
   void set_flag(int flags) { flags_ = flags; }
 
   HttpMethod method() const { return method_; }
@@ -53,7 +54,7 @@ class HttpRequest : public Noncopyable {
   FieldContainer fields_;
   int content_length_ = 0;
   const char *content_starts_ = nullptr;
-  std::shared_ptr<char> stream_ = nullptr;
+  std::shared_ptr<CharBuffer> stream_ = nullptr;
   int flags_ = kHFNothing;
 };
 

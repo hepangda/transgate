@@ -20,16 +20,23 @@
 
 namespace tg {
 
-TcpSocket TcpServer::accept() {
-  return TcpSocket(::accept4(fd(), nullptr, nullptr, SOCK_NONBLOCK));
+void TcpServer::acceptAll(std::function<void(int)> cb) {
+  for (int nfd; (nfd = accept4(fd(), nullptr, nullptr, SOCK_NONBLOCK)) != -1; ) {
+    cb(nfd);
+  }
+
 }
 
-TcpClient TcpServer::acceptWithAddress() {
+std::unique_ptr<TcpSocket> TcpServer::accept() {
+  return std::make_unique<TcpSocket>(::accept4(fd(), nullptr, nullptr, SOCK_NONBLOCK));
+}
+
+std::unique_ptr<TcpClient> TcpServer::acceptWithAddress() {
   struct sockaddr_in addr = {};
   socklen_t socklen = sizeof(addr);
 
   int client_fd = ::accept4(fd(), reinterpret_cast<struct sockaddr *>(&addr), &socklen, SOCK_NONBLOCK);
-  return { client_fd, InetAddress(addr) };
+  return std::make_unique<TcpClient>(client_fd, InetAddress(addr));
 }
 
 int TcpServer::bind() {

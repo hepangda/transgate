@@ -63,7 +63,7 @@ inline bool isuri(char c) {
 }
 }
 
-bool HttpParser::isEnoughToParse() {
+bool HttpParser::parseable() {
   // A complete request's should greater than 18 bytes
   // GET / HTTP/1.0
   // method : 3 bytes at least
@@ -106,6 +106,7 @@ bool HttpParser::isEnoughToParse() {
   case kHPSCRLFCRLF:
     return true;
   case kHPSDied:
+    if (f_.err == kHPEExceptedContent) return stream_->readable() == f_.content_length;
     return false;
   }
 
@@ -238,7 +239,7 @@ bool HttpParser::parseOnce() {
       stmap(c == LF, kHPSCRLFCRLF);
       reject(kHPECRLF);
     case kHPSCRLFCRLF:
-    reject(kHPEFine);
+      reject(kHPEExceptedContent);
     case kHPSHeader:
       stmapr(isheader(c), kHPSHeader, ++f_.header_length);
       stmap(c == ':', kHPSColon);
@@ -269,15 +270,12 @@ bool HttpParser::parseOnce() {
 void HttpParser::setParseResult() {
   // TODO: FIX MAGIC NUMBER
   if (f_.content_length >= 200000) {
-
-  }
-
-  if (stream_->readable() < f_.content_length) {
     f_.err = kHPEEntityTooLarge;
+    return;
   }
 
   switch (f_.err) {
-  case kHPEFine:
+  case kHPEExceptedContent:
     request_->set_method(f_.method);
     request_->set_uri({f_.uri_starts, f_.uri_length});
     break;
@@ -289,6 +287,9 @@ void HttpParser::setParseResult() {
     break;
   case kHPEEntityTooLarge:
     request_->set_code(kHCRequestEntityTooLarge);
+    break;
+  case kHPEFine:
+    request_->set_code(kHCInternalServerError);
     break;
   default:
     request_->set_code(kHCBadRequest);
@@ -305,6 +306,16 @@ void HttpParser::setParseResult() {
 
   request_->set_content_starts(stream_->readptr());
   request_->set_content_length(f_.content_length);
+}
+
+HttpParserErrors HttpParser::doParse() {
+  if (f_.err == kHPEParsed) return f_.err;
+  if (!parseable()) return f_.err = kHPENotAvailable;
+  if (f_.err == kHPEExceptedContent) return f_.err = kHPEParsed;
+
+  bool is_done = parseOnce();
+  if (is_done) setParseResult();
+  return f_.err;
 }
 
 }

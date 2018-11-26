@@ -17,6 +17,7 @@
 #include "../net/epoll_event_result.h"
 #include "../utils/string_view.h"
 #include "../utils/heap_buffer.h"
+#include "../http/http_user.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -34,9 +35,9 @@ void Transgate::run() {
   try {
     server_.setVar(TcpServer::ReusePort);
     server_.bindAndListen();
-    printf("listen.. fd = %d\n", server_.fd());
-    epoll_.add(EpollEvent(server_, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered)));
+    epoll_.add(EpollEvent(server_, ETEOReadable()));
 
+    // TODO: FIX MAGIC NUMBER
     EpollEventResult event_result{100};
 
     for (;;) {
@@ -44,16 +45,19 @@ void Transgate::run() {
 
       for (int i = 0; i < event_result.size(); i++) {
         auto &it = event_result[i];
+        int id = it.event_fd();
 
         if (it.event_fd() == server_.fd()) {
-            auto client = server_.accept();
-            perror("accept");
-            epoll_.add(client, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered));
-          perror("epad");
-          epoll_.modify(server_, EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered));
+          server_.acceptAll([this] (int fd) {
+            int nid = usrmgr_.delegate(std::make_unique<HttpUser>(fd));
+            usrmgr_.addEventsOfReadable(epoll_, nid);
+          });
+
+          epoll_.modify(server_, ETEOReadable());
         } else if (it.check(kEPSocketClosed)) {
           epoll_.remove(it);
         } else if (it.check(kEPReadable)) {
+          usrmgr_.doReadable(id);
           TcpSocket client{it.event_fd()};
           HeapBuffer buffer{512};
 

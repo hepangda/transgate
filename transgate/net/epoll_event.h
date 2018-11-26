@@ -37,6 +37,9 @@ enum EpollEventType {
   KEPError = ::EPOLLERR
 };
 
+constexpr EpollEventType ETEOReadable() { return EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered); }
+constexpr EpollEventType ETEOWriteable() { return EpollEventType(kEPWriteable | kEPOneShot | kEPEdgeTriggered); }
+
 class EpollEvent final : public Copyable {
  public:
   explicit EpollEvent(): event_() {}

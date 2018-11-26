@@ -32,9 +32,11 @@ class CharBuffer : public ReadOnlyBuffer, Noncopyable {
   int size() const final { return size_; }
 
   const char *readptr() const final { return store_.get() + read_pos_; }
+  void *writeptr() const { return store_.get() + write_pos_; }
+
   int read(void *dest, int bytes) final {
+    memcpy(dest, store_.get() + read_pos_, static_cast<size_t>(bytes));
     read(bytes);
-    std::copy(store_.get() + read_pos_, store_.get() + bytes, dest);
     return bytes;
   }
 
@@ -56,12 +58,20 @@ class CharBuffer : public ReadOnlyBuffer, Noncopyable {
     return store_[read_pos_ + nums];
   }
 
+  int write(int bytes) {
+    if (bytes > writeable())
+      throw std::invalid_argument("`CharBuffer::write` argument `bytes` is over than writeable.");
+    write_pos_ += bytes;
+    return bytes;
+  }
+
   int write(const char *src, int bytes) {
     if (bytes >= writeable()) {
       throw std::invalid_argument("`CharBuffer::write` arguemnt `bytes` is over than writeable.");
     }
 
-    std::copy(src, src + bytes, store_.get() + write_pos_);
+    memcpy(store_.get() + write_pos_, src, static_cast<size_t>(bytes));
+    write_pos_ += bytes;
     return bytes;
   }
 
