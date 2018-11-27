@@ -1,0 +1,26 @@
+{
+    "global": {
+        "port": 8095,
+        "epoll_events": 30
+    },
+    "sites-avaiable": [
+        "default-site"
+    ],
+    "default-site": {
+        "host-regex": ".*",
+        "www-root": "/home/pangda/wwwroot",
+        "default-file": "index.html",
+        "forbidden-regex": [  ],
+        "allowed-methods": {
+            "GET": true,
+            "HEAD": true,
+            "POST": true,
+            "OPTIONS": true
+        }
+    },
+    "fastcgi": {
+        "match": ".+\\.(php)$",
+        "tcp-addr": "127.0.0.1",
+        "tcp-port": 9000
+    }
+}
