@@ -59,7 +59,7 @@ class HttpUser : public Noncopyable, public LinuxFile {
                          "<html></html><html></html><html></html><html></html><html></html><html></html>"
                          "<html></html><html></html><html></html><html></html><html></html><html></html>");
 
-    
+
   }
  private:
   // lazy-init
