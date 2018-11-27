@@ -23,12 +23,12 @@
 #include <functional>
 
 #include "../base/copyable.h"
-#include "read_only_buffer.h"
+#include "readable_buffer.h"
 #include "buffer.h"
 
 namespace tg {
 
-//class StringViewA : public ReadOnlyBuffer, Copyable {
+//class StringViewA : public ReadableBuffer, Copyable {
 // public:
 //  StringView() : ptr_(nullptr), length_(0) {}
 //  explicit StringView(const char *ptr) : ptr_(ptr), length_(static_cast<int>(std::strlen(ptr_))) {}

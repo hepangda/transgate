@@ -24,9 +24,9 @@ class ConcurrencyProxy {
   explicit ConcurrencyProxy(Callable func, Args ...args) {
     thcont_.reserve(std::thread::hardware_concurrency());
 
-    for (int i = 0; i < std::thread::hardware_concurrency(); ++i) {
+//    for (int i = 0; i < std::thread::hardware_concurrency(); ++i) {
       thcont_.emplace_back(std::forward<Callable>(func), std::forward<Args>(args)...);
-    }
+//    }
   }
 
   int wait() {

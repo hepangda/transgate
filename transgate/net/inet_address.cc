@@ -11,11 +11,12 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
+
+#include "inet_address.h"
+
 #include <strings.h>
 #include <cassert>
 #include <stdexcept>
-
-#include "inet_address.h"
 
 namespace tg {
 

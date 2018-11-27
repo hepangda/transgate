@@ -16,7 +16,6 @@
 #define TRANSGATE_TG_H
 
 
-#include "../net/thread_pool.h"
 #include "../net/tcp_server.h"
 #include "../net/epoll.h"
 #include "user_manager.h"
@@ -26,7 +25,6 @@ namespace tg {
 class Transgate {
  public:
   Transgate();
-  void registerAccept();
   void run();
  private:
   UserManager usrmgr_;

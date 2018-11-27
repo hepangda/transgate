@@ -37,8 +37,10 @@ enum EpollEventType {
   KEPError = ::EPOLLERR
 };
 
-constexpr EpollEventType ETEOReadable() { return EpollEventType(kEPReadable | kEPOneShot | kEPEdgeTriggered); }
-constexpr EpollEventType ETEOWriteable() { return EpollEventType(kEPWriteable | kEPOneShot | kEPEdgeTriggered); }
+constexpr EpollEventType ETEOBasic() { return EpollEventType(kEPEdgeTriggered | kEPOneShot | kEPSocketClosed); }
+constexpr EpollEventType ETEOReadable() { return EpollEventType(ETEOBasic() | kEPReadable); }
+constexpr EpollEventType ETEOWriteable() { return EpollEventType(ETEOBasic() | kEPWriteable); }
+constexpr EpollEventType ETEOAllof() { return EpollEventType(ETEOReadable() | ETEOWriteable()); }
 
 class EpollEvent final : public Copyable {
  public:

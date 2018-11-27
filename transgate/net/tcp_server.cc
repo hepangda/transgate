@@ -22,6 +22,7 @@ namespace tg {
 
 void TcpServer::acceptAll(std::function<void(int)> cb) {
   for (int nfd; (nfd = accept4(fd(), nullptr, nullptr, SOCK_NONBLOCK)) != -1; ) {
+    printf("accept=%d\n", nfd);
     cb(nfd);
   }
 

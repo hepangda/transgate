@@ -13,12 +13,12 @@
 //  limitations under the License.
 
 
-#ifndef TRANSGATE_READ_ONLY_BUFFER_H
-#define TRANSGATE_READ_ONLY_BUFFER_H
+#ifndef TRANSGATE_READABLE_BUFFER_H
+#define TRANSGATE_READABLE_BUFFER_H
 
 namespace tg {
 
-/* interface */ class ReadOnlyBuffer {
+/* interface */ class ReadableBuffer {
  public:
   virtual int readable() const = 0;
   virtual const char *readptr() const = 0;
@@ -31,4 +31,4 @@ namespace tg {
 
 }
 
-#endif // TRANSGATE_READ_ONLY_BUFFER_H
+#endif // TRANSGATE_READABLE_BUFFER_H
