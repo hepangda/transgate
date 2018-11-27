@@ -19,7 +19,7 @@
 
 #include "../base/noncopyable.h"
 #include "http_types.h"
-#include "../utils/read_only_buffer.h"
+#include "../utils/readable_buffer.h"
 
 namespace tg {
 
@@ -101,7 +101,7 @@ struct HttpParserBuffer {
 
 class HttpParser : public Noncopyable {
  public:
-  HttpParser(std::shared_ptr<ReadOnlyBuffer> stream, std::shared_ptr<HttpRequest> request)
+  HttpParser(std::shared_ptr<ReadableBuffer> stream, std::shared_ptr<HttpRequest> request)
       : stream_(std::move(stream)), request_(std::move(request)) {}
 
   HttpParserErrors doParse();
@@ -112,7 +112,7 @@ class HttpParser : public Noncopyable {
   void setParseResult();
   bool parseable();
 
-  std::shared_ptr<ReadOnlyBuffer> stream_;
+  std::shared_ptr<ReadableBuffer> stream_;
   std::shared_ptr<HttpRequest> request_;
   HttpParserBuffer f_;
 };

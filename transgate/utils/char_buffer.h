@@ -14,18 +14,18 @@
 
 #ifndef TRANSGATE_CHAR_BUFFER_H
 #define TRANSGATE_CHAR_BUFFER_H
-
+#include <iostream>
 #include <memory>
 #include <cstring>
 
 #include "../base/noncopyable.h"
-#include "read_only_buffer.h"
+#include "readable_buffer.h"
 
 namespace tg {
 
-class CharBuffer : public ReadOnlyBuffer, Noncopyable {
+class CharBuffer : public ReadableBuffer, Noncopyable {
  public:
-  explicit CharBuffer(int size) : size_(size) {}
+  explicit CharBuffer(int size) : size_(size), store_(std::make_unique<char[]>(size)) {}
 
   int readable() const final { return write_pos_ - read_pos_; }
   int writeable() const { return size_ - write_pos_; }
@@ -59,14 +59,14 @@ class CharBuffer : public ReadOnlyBuffer, Noncopyable {
   }
 
   int write(int bytes) {
-    if (bytes > writeable())
+    if (bytes > writeable() && !clean(bytes))
       throw std::invalid_argument("`CharBuffer::write` argument `bytes` is over than writeable.");
     write_pos_ += bytes;
     return bytes;
   }
 
   int write(const char *src, int bytes) {
-    if (bytes >= writeable()) {
+    if (bytes >= writeable() && !clean(bytes)) {
       throw std::invalid_argument("`CharBuffer::write` arguemnt `bytes` is over than writeable.");
     }
 
@@ -93,6 +93,16 @@ class CharBuffer : public ReadOnlyBuffer, Noncopyable {
   int size_;
   int write_pos_ = 0;
   int read_pos_ = 0;
+
+  bool clean(int bytes) {
+    int interval = write_pos_ - read_pos_;
+    if (bytes > size_ - 128) return false;
+    // fix magic number
+
+    memmove(store_.get(), readptr(), static_cast<size_t>(interval));
+    write_pos_ = read_pos_ = 0;
+    return true;
+  }
 };
 
 }

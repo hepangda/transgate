@@ -36,30 +36,33 @@ class HttpUser : public Noncopyable, public LinuxFile {
     if (read_buffer_ == nullptr) {
       read_buffer_ = std::make_shared<CharBuffer>(2048); // todo: fix magic number
     }
+
     for (int ret; (ret = user_->read(read_buffer_)) != -1;) {}
 
     try_consume();
   }
 
   void try_consume() {
-    if (write_buffer_ == nullptr) {
-      write_buffer_ = std::make_shared<CharBuffer>(2048); // todo: fix magic number
+    if (write_loop_ == nullptr) {
+      write_loop_ = std::make_unique<WriteLoop>(fd(), 2048); // todo: fix magic number
     }
 
-    write_buffer_->write("HTTP/1.1 200 OK\r\nConnection: Close\r\nContent-Length: 260\r\n\r\n<html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                         "<html></html><html></html><html></html><html></html><html></html><html></html>");
+    int len = write_loop_->write("HTTP/1.1 200 OK\r\nConnection: Close\r\nContent-Length: 260\r\n\r\n<html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
+                                   "<html></html><html></html><html></html><html></html><html></html><html></html>", 930);
 
-
+    write_loop_->append(kWETSend, len, 0);
+    puts("\033[31mpush\033[0m");
+    write_loop_->doAll();
   }
  private:
   // lazy-init
@@ -77,6 +80,6 @@ struct HttpUserHash {
   }
 };
 
-}
+};
 
 #endif // TRANSGATE_HTTP_USER_H

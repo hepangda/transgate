@@ -12,30 +12,17 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include "tcp_socket.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 
 #include "../utils/buffer.h"
-#include "../utils/heap_buffer.h"
-#include "tcp_socket.h"
 
 namespace tg {
 
 int TcpSocket::read(void *buffer, int length, int flags) const {
   return static_cast<int>(::recv(socket_fd_, buffer, static_cast<size_t >(length), flags));
-}
-
-int TcpSocket::read(tg::HeapBuffer &buffer, int length, int flags) const {
-  if (length == -1 || length > buffer.readable()) {
-    length = buffer.writeable();
-  }
-
-  int readed_bytes = static_cast<int>(::recv(socket_fd_, buffer.wptr(), static_cast<size_t>(length), flags));
-  if (readed_bytes != -1) {
-    buffer.doWrite(readed_bytes);
-  }
-
-  return readed_bytes;
 }
 
 int TcpSocket::read(std::shared_ptr<CharBuffer> &buffer, int length, int flags) const {

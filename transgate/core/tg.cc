@@ -11,19 +11,19 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
+#include <signal.h>
 #include <iostream>
 
 #include "tg.h"
 #include "../net/epoll_event_result.h"
 #include "../utils/string_view.h"
-#include "../utils/heap_buffer.h"
 #include "../http/http_user.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 namespace tg {
 
-Transgate::Transgate() : server_(InetAddress(8090)) {
+Transgate::Transgate() : server_(InetAddress(8090)), usrmgr_(epoll_) {
 
 }
 
@@ -33,6 +33,7 @@ void Transgate::registerAccept() {
 
 void Transgate::run() {
   try {
+    signal(SIGPIPE, SIG_IGN);
     server_.setVar(TcpServer::ReusePort);
     server_.bindAndListen();
     epoll_.add(EpollEvent(server_, ETEOReadable()));
@@ -49,35 +50,17 @@ void Transgate::run() {
 
         if (it.event_fd() == server_.fd()) {
           server_.acceptAll([this] (int fd) {
-            int nid = usrmgr_.delegate(std::make_unique<HttpUser>(fd));
-            usrmgr_.addEventsOfReadable(epoll_, nid);
+            usrmgr_.delegate(std::make_unique<HttpUser>(fd), ETEOReadable());
           });
 
           epoll_.modify(server_, ETEOReadable());
         } else if (it.check(kEPSocketClosed)) {
-          epoll_.remove(it);
+          puts("trigger");
+          usrmgr_.release(id);
         } else if (it.check(kEPReadable)) {
           usrmgr_.doReadable(id);
-          TcpSocket client{it.event_fd()};
-          HeapBuffer buffer{512};
-
-          client.read(buffer);
-          int rt =
-              client.write(StringView("HTTP/1.1 200 OK\r\nConnection: Close\r\nContent-Length: 260\r\n\r\n<html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                      "<html></html><html></html><html></html><html></html><html></html><html></html>"));
-          client.close();
+          usrmgr_.activate(id, ETEOReadable());
         }
-
       }
     }
 
