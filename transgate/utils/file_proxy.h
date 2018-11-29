@@ -12,26 +12,25 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_TG_H
-#define TRANSGATE_TG_H
+#ifndef TRANSGATE_FILE_PROXY_H
+#define TRANSGATE_FILE_PROXY_H
 
-
-#include "../net/tcp_server.h"
-#include "../net/epoll.h"
-#include "user_manager.h"
+#include "../base/linuxfile.h"
+#include "../base/noncopyable.h"
 
 namespace tg {
 
-class Transgate {
+class FileProxy: public Noncopyable, public LinuxFile {
  public:
-  Transgate() : server_(InetAddress(8090)), usrmgr_(epoll_) {}
-  void run();
+  explicit FileProxy(const char *path);
+  FileProxy(FileProxy &directory, const char *path);
+  virtual ~FileProxy();
+
+  int fd() const final { return fd_; }
  private:
-  UserManager usrmgr_;
-  TcpServer server_;
-  Epoll epoll_;
+  int fd_;
 };
 
 }
 
-#endif // TRANSGATE_TG_H
+#endif // TRANSGATE_FILE_PROXY_H

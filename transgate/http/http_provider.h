@@ -12,35 +12,24 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_USER_MANAGER_H
-#define TRANSGATE_USER_MANAGER_H
+#ifndef TRANSGATE_HTTP_PROVIDER_H
+#define TRANSGATE_HTTP_PROVIDER_H
 
 #include <memory>
-#include <unordered_map>
-#include "../net/epoll.h"
 
 namespace tg {
 
-class HttpUser;
-class Epoll;
+class WriteLoop;
+class FileProxy;
 
-class UserManager {
+class HttpProvider {
  public:
-  explicit UserManager(Epoll &epoll): epoll_(epoll) {}
 
-  bool contains(int id) { return table_.count(id) > 0; }
-
-  int delegate(std::unique_ptr<HttpUser> &user, EpollEventType type);
-  int delegate(std::unique_ptr<HttpUser> &&user, EpollEventType type);
-  void activate(int id, EpollEventType type);
-  void release(int id);
-
-  void doReadable(int id);
  private:
-  Epoll &epoll_;
-  std::unordered_map<int, std::unique_ptr<HttpUser>> table_;
+  std::shared_ptr<WriteLoop> write_loop_ = nullptr;
+  std::shared_ptr<FileProxy> file_ = nullptr;
 };
 
 }
 
-#endif // TRANSGATE_USER_MANAGER_H
+#endif // TRANSGATE_HTTP_PROVIDER_H

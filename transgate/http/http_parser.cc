@@ -63,6 +63,14 @@ inline bool isuri(char c) {
 }
 }
 
+bool HttpParser::isParsed() const {
+  return f_.err != kHPEFine && f_.err != kHPENotAvailable;
+}
+
+bool HttpParser::isFinished() const {
+  return isParsed() && f_.err != kHPEExceptedContent;
+}
+
 bool HttpParser::parseable() {
   // A complete request's should greater than 18 bytes
   // GET / HTTP/1.0
@@ -206,9 +214,9 @@ bool HttpParser::parseOnce() {
 
       if (header.equalsWithoutCase(length_key)) {
         for (int i = 0; i < value.readable(); i++) {
-          if (isdigit(value.rptr()[i])) {
+          if (isdigit(value.readptr()[i])) {
             f_.content_length *= 10;
-            f_.content_length += value.rptr()[i] - '0';
+            f_.content_length += value.readptr()[i] - '0';
           } else {
             f_.content_length = -1;
           }

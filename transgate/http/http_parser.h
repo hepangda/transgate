@@ -105,8 +105,8 @@ class HttpParser : public Noncopyable {
       : stream_(std::move(stream)), request_(std::move(request)) {}
 
   HttpParserErrors doParse();
-  bool isParsed() const { return f_.err != kHPEFine && f_.err != kHPENotAvailable; }
-  bool isFinished() const { return isParsed() && f_.err != kHPEExceptedContent; }
+  bool isParsed() const;
+  bool isFinished() const;
  private:
   bool parseOnce();
   void setParseResult();

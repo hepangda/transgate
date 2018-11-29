@@ -12,10 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include "string_view.h"
+
 #include <cstring>
 #include <iostream>
-
-#include "string_view.h"
 
 namespace tg {
 
@@ -45,7 +45,7 @@ bool StringView::equalsWithoutCase(const char *rhs) const {
 }
 
 std::ostream &operator<<(std::ostream &os, const StringView &view) {
-  os.write(view.rptr(), view.readable());
+  os.write(view.readptr(), view.readable());
   return os;
 }
 

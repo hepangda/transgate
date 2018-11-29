@@ -12,26 +12,27 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_TG_H
-#define TRANSGATE_TG_H
+#ifndef TRANSGATE_FILE_READER_H
+#define TRANSGATE_FILE_READER_H
 
+#include <cstddef>
 
-#include "../net/tcp_server.h"
-#include "../net/epoll.h"
-#include "user_manager.h"
+#include "file_proxy.h"
 
 namespace tg {
 
-class Transgate {
+class FileReader : public FileProxy {
  public:
-  Transgate() : server_(InetAddress(8090)), usrmgr_(epoll_) {}
-  void run();
+  explicit FileReader(const char *path): FileProxy(path) {}
+  FileReader(FileProxy &directory, const char *path): FileProxy(directory, path) {}
+
+  long sendfile(int socket_fd);
+  bool isDone() const { return length_ == offset_; }
  private:
-  UserManager usrmgr_;
-  TcpServer server_;
-  Epoll epoll_;
+  size_t length_ = 0;
+  long offset_ = 0;
 };
 
 }
 
-#endif // TRANSGATE_TG_H
+#endif // TRANSGATE_FILE_READER_H

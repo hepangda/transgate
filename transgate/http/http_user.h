@@ -18,60 +18,45 @@
 #include <memory>
 
 #include "../base/noncopyable.h"
-#include "../utils/char_buffer.h"
-#include "http_parser.h"
-#include "../net/write_loop.h"
 #include "../base/linuxfile.h"
-#include "../net/tcp_socket.h"
 
 namespace tg {
+
+class CharBuffer;
+class WriteLoop;
+class HttpRequest;
+class HttpProvider;
+class HttpParser;
+class TcpSocket;
 
 class HttpUser : public Noncopyable, public LinuxFile {
  public:
   explicit HttpUser(std::unique_ptr<TcpSocket> &&user) { user.swap(user_); }
   explicit HttpUser(int fd) { user_ = std::make_unique<TcpSocket>(fd); }
-  int fd() const final { return user_->fd(); }
+  virtual ~HttpUser();
 
-  void onRead() {
-    if (read_buffer_ == nullptr) {
-      read_buffer_ = std::make_shared<CharBuffer>(2048); // todo: fix magic number
-    }
+  int fd() const final;
 
-    for (int ret; (ret = user_->read(read_buffer_)) != -1;) {}
-
-    try_consume();
-  }
-
-  void try_consume() {
-    if (write_loop_ == nullptr) {
-      write_loop_ = std::make_unique<WriteLoop>(fd(), 2048); // todo: fix magic number
-    }
-
-    int len = write_loop_->write("HTTP/1.1 200 OK\r\nConnection: Close\r\nContent-Length: 260\r\n\r\n<html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                                   "<html></html><html></html><html></html><html></html><html></html><html></html>", 930);
-
-    write_loop_->append(kWETSend, len, 0);
-    puts("\033[31mpush\033[0m");
-    write_loop_->doAll();
-  }
+  void onRead();
+  void try_consume();
  private:
-  // lazy-init
   std::shared_ptr<CharBuffer> read_buffer_ = nullptr;
-  std::shared_ptr<CharBuffer> write_buffer_ = nullptr;
+  std::shared_ptr<WriteLoop> write_loop_ = nullptr;
+
+  std::shared_ptr<HttpRequest> request_ = nullptr;
+  std::unique_ptr<HttpProvider> provider_ = nullptr;
   std::unique_ptr<HttpParser> parser_ = nullptr;
-  std::unique_ptr<WriteLoop> write_loop_ = nullptr;
 
   std::unique_ptr<TcpSocket> user_;
+
+  enum class Preparation {
+    ReadBuffer,
+    WriteLoop,
+    Request,
+    Provider,
+    Parser,
+  };
+  void prepare(Preparation what);
 };
 
 struct HttpUserHash {

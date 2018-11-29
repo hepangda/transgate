@@ -24,55 +24,30 @@
 
 #include "../base/copyable.h"
 #include "readable_buffer.h"
-#include "buffer.h"
 
 namespace tg {
 
-//class StringViewA : public ReadableBuffer, Copyable {
-// public:
-//  StringView() : ptr_(nullptr), length_(0) {}
-//  explicit StringView(const char *ptr) : ptr_(ptr), length_(static_cast<int>(std::strlen(ptr_))) {}
-//  explicit StringView(const std::string &str) : ptr_(str.c_str()), length_(static_cast<int>(str.length())) {}
-//  StringView(const char *ptr, int length) : ptr_(ptr), length_(length) {}
-//  StringView(const std::string &str, int length) : ptr_(str.c_str()), length_(length) {}
-//
-//  const char *rptr() const override { return ptr_; }
-//  int size() const override { return length_; }
-//  int readable() const override { return length_; }
-//  int read(void *dest, int bytes) {
-//
-//  }
-//  int read(int bytes) final {
-//    remove_prefix(bytes);
-//    return bytes;
-//  }
-//
-//
-//  void doRead(int bytes) override { remove_prefix(bytes); }
-//
-//  void remove_prefix(int size);
-//  void remove_suffix(int size) { length_ -= size; }
-//
-//  bool operator==(const StringView &rhs) const;
-//  bool equalsWithoutCase(const StringView &rhs) const;
-// private:
-//  const char *ptr_;
-//  int length_;
-//};
-
-class StringView : public Buffer, public Copyable {
+class StringView : public ReadableBuffer, public Copyable {
  public:
-  StringView() : ptr_(nullptr), length_(0) {}
+  StringView() = default;
   explicit StringView(const char *ptr) : ptr_(ptr), length_(static_cast<int>(std::strlen(ptr_))) {}
-  explicit StringView(const std::string &str) : ptr_(str.c_str()), length_(static_cast<int>(str.length())) {}
   StringView(const char *ptr, int length) : ptr_(ptr), length_(length) {}
-  StringView(const std::string &str, int length) : ptr_(str.c_str()), length_(length) {}
 
-  const char *rptr() const override { return ptr_; }
-  int length() const override { return length_; }
   int readable() const override { return length_; }
-  int writeable() const override { return 0; }
-  void doRead(int bytes) override { remove_prefix(bytes); }
+  const char *readptr() const final { return ptr_; }
+  int size() const final { return length_; }
+
+  int read(void *dest, int bytes) final {
+    memcpy(dest, readptr(), static_cast<size_t>(bytes));
+    return bytes;
+  }
+  int read(int bytes) override {
+    remove_prefix(bytes);
+    return bytes;
+  }
+
+  char peek() const final { return *ptr_; }
+  char peek(int nums) const final { return ptr_[nums]; }
 
   void remove_prefix(int size);
   void remove_suffix(int size) { length_ -= size; }
@@ -82,15 +57,15 @@ class StringView : public Buffer, public Copyable {
   bool equalsWithoutCase(const char *rhs) const;
 
  private:
-  const char *ptr_;
-  int length_;
+  const char *ptr_ = nullptr;
+  int length_ = 0;
 };
 
 std::ostream &operator<<(std::ostream &os, const StringView &rhs);
 
 struct StringViewHash {
   size_t operator()(const StringView &string_view) const {
-    return std::hash<const char *>()(string_view.rptr()) + std::hash<int>()(string_view.length());
+    return std::hash<const char *>()(string_view.readptr()) + std::hash<int>()(string_view.size());
   }
 };
 

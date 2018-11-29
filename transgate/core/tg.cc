@@ -11,25 +11,19 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
-#include <signal.h>
-#include <iostream>
 
 #include "tg.h"
+
+#include <signal.h>
+
 #include "../net/epoll_event_result.h"
 #include "../utils/string_view.h"
 #include "../http/http_user.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
+
 namespace tg {
-
-Transgate::Transgate() : server_(InetAddress(8090)), usrmgr_(epoll_) {
-
-}
-
-void Transgate::registerAccept() {
-
-}
 
 void Transgate::run() {
   try {
@@ -49,24 +43,20 @@ void Transgate::run() {
         int id = it.event_fd();
 
         if (it.event_fd() == server_.fd()) {
-          server_.acceptAll([this] (int fd) {
-            usrmgr_.delegate(std::make_unique<HttpUser>(fd), ETEOReadable());
-          });
-
+          server_.acceptAll([this](int fd) { usrmgr_.delegate(std::make_unique<HttpUser>(fd), ETEOReadable()); });
           epoll_.modify(server_, ETEOReadable());
         } else if (it.check(kEPSocketClosed)) {
-          puts("trigger");
           usrmgr_.release(id);
         } else if (it.check(kEPReadable)) {
           usrmgr_.doReadable(id);
-          usrmgr_.activate(id, ETEOReadable());
+//          usrmgr_.activate(id, ETEOReadable());
+          usrmgr_.release(id);
         }
       }
     }
 
   } catch (std::exception &ex) {
     std::cout << ex.what() << std::endl;
-//    std::abort();
   }
 }
 

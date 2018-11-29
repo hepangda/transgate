@@ -12,20 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_BUFFER_H
-#define TRANSGATE_BUFFER_H
+#include <sys/sendfile.h>
+#include "file_reader.h"
 
 namespace tg {
 
-class Buffer {
- public:
-  virtual const char *rptr() const = 0;
-  virtual int length() const = 0;
-  virtual int readable() const = 0;
-  virtual int writeable() const = 0;
-  virtual void doRead(int bytes) = 0;
-};
-
+long FileReader::sendfile(int socket_fd) {
+  return ::sendfile(socket_fd, fd(), &offset_, length_ - offset_);
 }
 
-#endif // TRANSGATE_BUFFER_H
+}

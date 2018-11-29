@@ -17,35 +17,26 @@
 
 #include <deque>
 #include <memory>
+#include <functional>
 #include "../utils/char_buffer.h"
 
 namespace tg {
 
-enum WriteEventType : int {
-  kWETSend = 0,
-  kWETSendFile = 1,
-};
+class FileReader;
 
 class WriteLoop {
  public:
   WriteLoop(int fd, int buffer_size) : fd_(fd), buffer_(std::make_unique<CharBuffer>(buffer_size)) {}
-  struct Task {
-    Task() = default;
-    Task(WriteEventType type, int length, int fd) : type(type), length(length), fd(fd) {}
-    WriteEventType type;
-    int length;
-    int fd;
-  };
+  using Task = std::function<bool()>;
 
   bool doOnce();
-  void doAll() { while (doOnce()); }
+  void doAll() { while (doOnce()) {}}
 
-  void insert(WriteEventType type, int length, int offset) {
-    q_.emplace_front(type, length, offset);
-  }
-  void append(WriteEventType type, int length, int offset) {
-    q_.emplace_back(type, length, offset);
-  }
+  void insertSend(int length) { q_.emplace_front([this, length] { return actSend(length); }); }
+  void insertSendfile(const std::shared_ptr<FileReader> &file) { q_.emplace_back([this, file] { return actSendfile(file); }); }
+
+  void appendSend(int length) { q_.emplace_back([this, length] { return actSend(length); }); }
+  void appendSendfile(const std::shared_ptr<FileReader> &file) { q_.emplace_back([this, file] { return actSendfile(file); }); }
 
   int write(int bytes) { return buffer_->write(bytes); }
   int write(const char *src, int bytes) { return buffer_->write(src, bytes); }
@@ -58,7 +49,7 @@ class WriteLoop {
   std::deque<Task> q_;
 
   bool actSend(int length);
-  bool actSendfile(int length, int fd);
+  bool actSendfile(std::shared_ptr<FileReader> file);
 };
 
 }

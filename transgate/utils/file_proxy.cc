@@ -12,26 +12,18 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_TG_H
-#define TRANSGATE_TG_H
+#include "file_proxy.h"
 
-
-#include "../net/tcp_server.h"
-#include "../net/epoll.h"
-#include "user_manager.h"
+#include <unistd.h>
+#include <fcntl.h>
 
 namespace tg {
 
-class Transgate {
- public:
-  Transgate() : server_(InetAddress(8090)), usrmgr_(epoll_) {}
-  void run();
- private:
-  UserManager usrmgr_;
-  TcpServer server_;
-  Epoll epoll_;
-};
+FileProxy::FileProxy(const char *path) : fd_(open(path, O_RDONLY)) {}
+FileProxy::FileProxy(FileProxy &directory, const char *path) : fd_(openat(directory.fd(), path, O_RDONLY)) {}
 
+FileProxy::~FileProxy() {
+  close(fd_);
 }
 
-#endif // TRANSGATE_TG_H
+}

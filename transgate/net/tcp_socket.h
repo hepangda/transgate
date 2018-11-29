@@ -24,8 +24,6 @@
 
 namespace tg {
 
-class Buffer;
-
 class TcpSocket : public Copyable, public LinuxFile {
  public:
   explicit TcpSocket(int fd) : socket_fd_(fd) {}
@@ -37,8 +35,8 @@ class TcpSocket : public Copyable, public LinuxFile {
   int read(std::shared_ptr<CharBuffer> &buffer, int length = -1, int flags = 0) const;
 
   int write(void *buffer, int length, int flags = 0) const;
-  int write(Buffer &buffer, int length = -1, int flags = 0) const;
-  int write(Buffer &&buffer, int flags = 0) const;
+//  int write(Buffer &buffer, int length = -1, int flags = 0) const;
+//  int write(Buffer &&buffer, int flags = 0) const;
 
   int setNonblockAndCloseExec();
   int setNonblock();

@@ -15,6 +15,9 @@
 #include "write_loop.h"
 
 #include <sys/socket.h>
+#include <sys/sendfile.h>
+
+#include "../utils/file_reader.h"
 
 namespace tg {
 
@@ -24,15 +27,7 @@ bool WriteLoop::doOnce() {
   auto f = q_.front();
   q_.pop_front();
 
-  switch (f.type) {
-  case kWETSend:
-    return actSend(f.length);
-  case kWETSendFile:
-    // TODO: finish here...
-    break;
-  }
-
-  return false;
+  return f();
 }
 
 bool WriteLoop::actSend(int length) {
@@ -40,7 +35,7 @@ bool WriteLoop::actSend(int length) {
   int sent = 0;
 
   // TODO: deal if errno != EINTR || EAGAIN
-  for (ssize_t r; (r = ::send(fd_, buffer_->readptr(), static_cast<size_t>(length - sent), 0)) > 0;) {
+  for (long r; (r = ::send(fd_, buffer_->readptr(), static_cast<size_t>(length - sent), 0)) > 0;) {
     sent += r;
   }
 
@@ -48,15 +43,20 @@ bool WriteLoop::actSend(int length) {
 
   int rest = length - sent;
   if (rest > 0) {
-    insert(kWETSend, rest, 0);
+    insertSend(rest);
     return false;
   }
   return true;
 }
 
-bool WriteLoop::actSendfile(int length, int fd) {
-  // TODO: Code here...
+bool WriteLoop::actSendfile(std::shared_ptr<FileReader> file) {
+  // TODO: deal if errno != EINTR || EAGAIN
+  for (ssize_t r; (r = file->sendfile(fd_)) > 0; ) { }
 
+  if (!file->isDone()) {
+    insertSendfile(file);
+    return false;
+  }
   return true;
 }
 
