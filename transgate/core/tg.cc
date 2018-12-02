@@ -19,7 +19,7 @@
 #include "../net/epoll_event_result.h"
 #include "../utils/string_view.h"
 #include "../http/http_user.h"
-
+#include <iostream>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
@@ -49,8 +49,8 @@ void Transgate::run() {
           usrmgr_.release(id);
         } else if (it.check(kEPReadable)) {
           usrmgr_.doReadable(id);
-//          usrmgr_.activate(id, ETEOReadable());
-          usrmgr_.release(id);
+          usrmgr_.activate(id, ETEOReadable());
+//          usrmgr_.release(id);
         }
       }
     }

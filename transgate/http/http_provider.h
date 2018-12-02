@@ -17,17 +17,16 @@
 
 #include <memory>
 
-namespace tg {
+#include "../net/write_loop.h"
 
-class WriteLoop;
-class FileProxy;
+namespace tg {
 
 class HttpProvider {
  public:
-
- private:
+  HttpProvider(const std::shared_ptr<WriteLoop> &wl): write_loop_(wl) {}
+  void provide();
+// private:
   std::shared_ptr<WriteLoop> write_loop_ = nullptr;
-  std::shared_ptr<FileProxy> file_ = nullptr;
 };
 
 }

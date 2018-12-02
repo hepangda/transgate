@@ -17,11 +17,12 @@
 
 #include <memory>
 #include <unordered_map>
+
 #include "../net/epoll.h"
+#include "../http/http_user.h"
 
 namespace tg {
 
-class HttpUser;
 class Epoll;
 
 class UserManager {

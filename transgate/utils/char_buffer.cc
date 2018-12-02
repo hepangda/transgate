@@ -32,7 +32,7 @@ int CharBuffer::read(int bytes) {
 }
 
 char CharBuffer::peek(int nums) const {
-  if (nums + 1 >= readable()) {
+  if (nums + 1 > readable()) {
     throw std::invalid_argument("`CharBuffer::peek` arguemnt `nums` is over than readable.");
   }
   return store_[read_pos_ + nums];
@@ -46,7 +46,7 @@ int CharBuffer::write(int bytes) {
 }
 
 int CharBuffer::write(const char *src, int bytes) {
-  if (bytes >= writeable() && !clean(bytes)) {
+  if (bytes > writeable() && !clean(bytes)) {
     throw std::invalid_argument("`CharBuffer::write` arguemnt `bytes` is over than writeable.");
   }
 

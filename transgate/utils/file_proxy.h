@@ -15,6 +15,10 @@
 #ifndef TRANSGATE_FILE_PROXY_H
 #define TRANSGATE_FILE_PROXY_H
 
+#include <memory>
+
+#include <sys/stat.h>
+
 #include "../base/linuxfile.h"
 #include "../base/noncopyable.h"
 
@@ -27,8 +31,12 @@ class FileProxy: public Noncopyable, public LinuxFile {
   virtual ~FileProxy();
 
   int fd() const final { return fd_; }
+  long size();
  private:
   int fd_;
+  std::unique_ptr<struct stat> stat_ = nullptr;
+
+  void prepareStat();
 };
 
 }

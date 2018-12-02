@@ -19,15 +19,13 @@
 
 #include "../base/noncopyable.h"
 #include "../base/linuxfile.h"
+#include "../net/tcp_socket.h"
+#include "../net/write_loop.h"
+#include "http_request.h"
+#include "http_provider.h"
+#include "http_parser.h"
 
 namespace tg {
-
-class CharBuffer;
-class WriteLoop;
-class HttpRequest;
-class HttpProvider;
-class HttpParser;
-class TcpSocket;
 
 class HttpUser : public Noncopyable, public LinuxFile {
  public:

@@ -15,10 +15,13 @@
 #include <sys/sendfile.h>
 #include "file_reader.h"
 
+#include <iostream>
+
 namespace tg {
 
 long FileReader::sendfile(int socket_fd) {
-  return ::sendfile(socket_fd, fd(), &offset_, length_ - offset_);
+  std::cout << 1111;
+  return ::sendfile(socket_fd, fd(), &offset_, static_cast<size_t>(length_ - offset_));
 }
 
 }

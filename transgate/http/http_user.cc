@@ -14,13 +14,6 @@
 
 #include "http_user.h"
 
-#include "http_parser.h"
-#include "http_request.h"
-#include "http_provider.h"
-#include "../utils/char_buffer.h"
-#include "../net/write_loop.h"
-#include "../net/tcp_socket.h"
-
 namespace tg {
 
 HttpUser::~HttpUser() {
@@ -40,38 +33,34 @@ void HttpUser::onRead() {
 void HttpUser::try_consume() {
   prepare(Preparation::Request);
   prepare(Preparation::Parser);
+  prepare(Preparation::WriteLoop);
 
   parser_->doParse();
   if (parser_->isFinished()) {
-    prepare(Preparation::WriteLoop);
     prepare(Preparation::Provider);
 
-    // provider->provide();
+    provider_->provide();
   }
-  int len = write_loop_->write("HTTP/1.1 200 OK\r\nConnection: Close\r\nContent-Length: 260\r\n\r\n<html></html>"
-                               "<html></html><html></html><html></html><html></html><html></html><html></html>"
-                               "<html></html><html></html><html></html><html></html><html></html><html></html>");
 
-  write_loop_->appendSend(len);
   write_loop_->doAll();
 }
 
 void HttpUser::prepare(HttpUser::Preparation what) {
   switch (what) {
   case Preparation::ReadBuffer:
-    if (read_buffer_ == nullptr) read_buffer_ = std::make_shared<CharBuffer>(2048);
+    if (!read_buffer_) read_buffer_ = std::make_shared<CharBuffer>(2048);
     break;
   case Preparation::WriteLoop:
-    if (write_loop_ == nullptr) write_loop_ = std::make_shared<WriteLoop>(fd(), 2048);
+    if (!write_loop_) write_loop_ = std::make_shared<WriteLoop>(fd(), 2048);
     break;
   case Preparation::Request:
-    if (request_ == nullptr) request_ = std::make_shared<HttpRequest>();
+    if (!request_) request_ = std::make_shared<HttpRequest>();
     break;
   case Preparation::Provider:
-    if (provider_ == nullptr) provider_ = std::make_unique<HttpProvider>(); //todo: finish it
+    if (!provider_) provider_ = std::make_unique<HttpProvider>(write_loop_); //todo: finish it
     break;
   case Preparation::Parser:
-    if (parser_ == nullptr) parser_ = std::make_unique<HttpParser>(read_buffer_, request_);
+    if (!parser_) parser_ = std::make_unique<HttpParser>(read_buffer_, request_);
     break;
   }
 }

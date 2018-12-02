@@ -26,4 +26,16 @@ FileProxy::~FileProxy() {
   close(fd_);
 }
 
+off_t FileProxy::size() {
+  prepareStat();
+  return stat_->st_size;
+}
+
+void FileProxy::prepareStat() {
+  if (!stat_) {
+    stat_ = std::make_unique<struct stat>();
+    fstat(fd_, stat_.get());
+  }
+}
+
 }

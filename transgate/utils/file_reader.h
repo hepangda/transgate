@@ -15,8 +15,6 @@
 #ifndef TRANSGATE_FILE_READER_H
 #define TRANSGATE_FILE_READER_H
 
-#include <cstddef>
-
 #include "file_proxy.h"
 
 namespace tg {
@@ -29,7 +27,7 @@ class FileReader : public FileProxy {
   long sendfile(int socket_fd);
   bool isDone() const { return length_ == offset_; }
  private:
-  size_t length_ = 0;
+  long length_ = size();
   long offset_ = 0;
 };
 

@@ -86,29 +86,27 @@ bool HttpParser::parseable() {
   case kHPSMetGet:
   case kHPSMetPost:
   case kHPSMetHead:
-    return stream_->readable() >= 18;
+    return stream_->readable() >= 16;
   case kHPSMetAlmostDone:
   case kHPSMetDone:
   case kHPSUriStart:
-    return stream_->readable() >= 14;
+    return stream_->readable() >= 12;
   case kHPSUri:
   case kHPSUriEnd:
   case kHPSVerHttpSlash:
-    return stream_->readable() >= 12;
+    return stream_->readable() >= 10;
   case kHPSVerMajor:
-    return stream_->readable() >= 11;
+    return stream_->readable() >= 9;
   case kHPSVerDot:
   case kHPSHeader:
   case kHPSColon:
   case kHPSValue:
-    return stream_->readable() >= 5;
+    return stream_->readable() >= 3;
   case kHPSVerMinor:
   case kHPSVerEnd:
-    return stream_->readable() >= 4;
-  case kHPSCR:
-    return stream_->readable() >= 3;
-  case kHPSCRLF:
     return stream_->readable() >= 2;
+  case kHPSCR:
+  case kHPSCRLF:
   case kHPSCRLFCR:
     return stream_->readable() >= 1;
   case kHPSCRLFCRLF:
