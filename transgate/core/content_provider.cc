@@ -12,23 +12,12 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_HTTP_PROVIDER_H
-#define TRANSGATE_HTTP_PROVIDER_H
+#include "content_provider.h"
 
-#include <memory>
-
-#include "../net/write_loop.h"
+#include "../utils/file_reader.h"
 
 namespace tg {
 
-class HttpProvider {
- public:
-  HttpProvider(const std::shared_ptr<WriteLoop> &wl): write_loop_(wl) {}
-  void provide();
-// private:
-  std::shared_ptr<WriteLoop> write_loop_ = nullptr;
-};
+
 
 }
-
-#endif // TRANSGATE_HTTP_PROVIDER_H

@@ -44,6 +44,7 @@ class CharBuffer : public ReadableBuffer, Noncopyable {
   int write(const char *src);
   int write(const std::string &str) { return write(str, static_cast<int>(str.length())); }
   int write(const std::string &str, int bytes = -1);
+  int swrite(const char *format, va_list va);
 
   const char operator[](int sub) const { return store_[sub + read_pos_]; }
  private:

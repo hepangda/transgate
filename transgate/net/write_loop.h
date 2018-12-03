@@ -29,20 +29,20 @@ class WriteLoop {
   WriteLoop(int fd, int buffer_size) : fd_(fd), buffer_(std::make_unique<CharBuffer>(buffer_size)) {}
   using Task = std::function<bool()>;
 
+  bool empty() const { return q_.empty(); }
   bool doOnce();
   void doAll() { while (doOnce()) {}}
 
-  void insertSend(int length) { q_.emplace_front([this, length] { return actSend(length); }); }
-  void insertSendfile(const std::shared_ptr<FileReader> &file) { q_.emplace_back([this, file] { return actSendfile(file); }); }
-
   void appendSend(int length) { q_.emplace_back([this, length] { return actSend(length); }); }
   void appendSendfile(const std::shared_ptr<FileReader> &file) { q_.emplace_back([this, file] { return actSendfile(file); }); }
+  template <typename Callable>
+  void appendChore(Callable f) { q_.emplace_back(f); }
 
   int write(int bytes) { return buffer_->write(bytes); }
   int write(const char *src, int bytes) { return buffer_->write(src, bytes); }
   int write(const char *src) { return buffer_->write(src); }
   int write(const std::string &str, int bytes = -1) { return buffer_->write(str, bytes); }
-
+  int swrite(const char *format, ...);
  private:
   int fd_;
   std::unique_ptr<CharBuffer> buffer_;
@@ -50,6 +50,9 @@ class WriteLoop {
 
   bool actSend(int length);
   bool actSendfile(std::shared_ptr<FileReader> file);
+
+  void insertSend(int length) { q_.emplace_front([this, length] { return actSend(length); }); }
+  void insertSendfile(const std::shared_ptr<FileReader> &file) { q_.emplace_back([this, file] { return actSendfile(file); }); }
 };
 
 }

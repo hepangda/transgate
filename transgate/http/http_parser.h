@@ -25,59 +25,6 @@ namespace tg {
 
 class HttpRequest;
 
-enum HttpParserState {
-  kHPSBegin,
-
-  kHPSMetOptions,
-  kHPSMetHead,
-  kHPSMetGet,
-  kHPSMetPost,
-  kHPSMetAlmostDone,
-  kHPSMetDone,
-
-  kHPSUriStart,
-  kHPSUri,
-  kHPSUriEnd,
-
-  kHPSVerHttpSlash,
-  kHPSVerMajor,
-  kHPSVerDot,
-  kHPSVerMinor,
-  kHPSVerEnd,
-
-  kHPSCR,
-  kHPSCRLF,
-  kHPSCRLFCR,
-  kHPSCRLFCRLF,
-
-  kHPSHeader,
-  kHPSColon,
-  kHPSValue,
-  kHPSDied,
-};
-
-enum HttpParserErrors {
-  // Not Finished
-  kHPEFine,
-  kHPENotAvailable,
-
-  // Parsed, but excepted content
-  kHPEExceptedContent,
-
-  // Finished
-  kHPEParsed,   // finish without errors
-  kHPEInvalidMethod,
-  kHPEInvalidUri,
-  kHPEInvalidVersion,
-  kHPEInvalidContentLength,
-  kHPEUnsupportedVersion,
-  kHPECRLF,
-  kHPEInvalidHeader,
-  kHPEUnrecognizedChar,
-  kHPEUnexceptedEnd,
-  kHPEEntityTooLarge,
-};
-
 struct HttpParserBuffer {
   HttpParserState state = kHPSBegin;
   HttpParserErrors err = kHPEFine;
@@ -105,8 +52,9 @@ class HttpParser : public Noncopyable {
       : stream_(std::move(stream)), request_(std::move(request)) {}
 
   HttpParserErrors doParse();
-  bool isParsed() const;
+
   bool isFinished() const;
+  void clear() { f_ = HttpParserBuffer{}; }
  private:
   bool parseOnce();
   void setParseResult();

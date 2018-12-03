@@ -18,7 +18,7 @@
 
 #include "../net/epoll_event_result.h"
 #include "../utils/string_view.h"
-#include "../http/http_user.h"
+#include "user.h"
 #include <iostream>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -30,7 +30,7 @@ void Transgate::run() {
     signal(SIGPIPE, SIG_IGN);
     server_.setVar(TcpServer::ReusePort);
     server_.bindAndListen();
-    epoll_.add(EpollEvent(server_, ETEOReadable()));
+    epoll_.add(server_, ETEOReadable());
 
     // TODO: FIX MAGIC NUMBER
     EpollEventResult event_result{100};
@@ -43,14 +43,16 @@ void Transgate::run() {
         int id = it.event_fd();
 
         if (it.event_fd() == server_.fd()) {
-          server_.acceptAll([this](int fd) { usrmgr_.delegate(std::make_unique<HttpUser>(fd), ETEOReadable()); });
+          server_.acceptAll([this](int fd) { usrmgr_.delegate(std::make_unique<User>(fd), ETEOReadable()); });
           epoll_.modify(server_, ETEOReadable());
         } else if (it.check(kEPSocketClosed)) {
           usrmgr_.release(id);
         } else if (it.check(kEPReadable)) {
           usrmgr_.doReadable(id);
-          usrmgr_.activate(id, ETEOReadable());
-//          usrmgr_.release(id);
+          usrmgr_.adapt(id);
+        } else if (it.check(kEPWriteable)) {
+          usrmgr_.doWriteable(id);
+          usrmgr_.adapt(id);
         }
       }
     }

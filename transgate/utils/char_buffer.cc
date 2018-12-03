@@ -15,6 +15,7 @@
 #include "char_buffer.h"
 
 #include <cstring>
+#include <cstdarg>
 
 namespace tg {
 
@@ -65,10 +66,14 @@ int CharBuffer::write(const std::string &str, int bytes) {
   return write(str.c_str(), bytes);
 }
 
+int CharBuffer::swrite(const char *format, va_list va) {
+  return vsnprintf(store_.get() + write_pos_, static_cast<size_t>(writeable()), format, va);
+}
+
 bool CharBuffer::clean(int bytes) {
   int interval = write_pos_ - read_pos_;
   if (bytes > size_ - 128) return false;
-  // fix magic number
+  // todo:fix magic number
 
   memmove(store_.get(), readptr(), static_cast<size_t>(interval));
   write_pos_ = read_pos_ = 0;

@@ -19,7 +19,7 @@
 #include <unordered_map>
 
 #include "../net/epoll.h"
-#include "../http/http_user.h"
+#include "user.h"
 
 namespace tg {
 
@@ -31,15 +31,18 @@ class UserManager {
 
   bool contains(int id) { return table_.count(id) > 0; }
 
-  int delegate(std::unique_ptr<HttpUser> &user, EpollEventType type);
-  int delegate(std::unique_ptr<HttpUser> &&user, EpollEventType type);
-  void activate(int id, EpollEventType type);
+  int delegate(std::unique_ptr<User> &user, EpollEventType type);
+  int delegate(std::unique_ptr<User> &&user, EpollEventType type);
+  void activate(int id);
   void release(int id);
 
+  void adapt(int id);
+
   void doReadable(int id);
+  void doWriteable(int id);
  private:
   Epoll &epoll_;
-  std::unordered_map<int, std::unique_ptr<HttpUser>> table_;
+  std::unordered_map<int, std::unique_ptr<User>> table_;
 };
 
 }

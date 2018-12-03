@@ -14,29 +14,29 @@
 
 #include "user_manager.h"
 
-#include "../http/http_user.h"
+#include "user.h"
 
 namespace tg {
 
-int UserManager::delegate(std::unique_ptr<HttpUser> &user, EpollEventType type) {
+int UserManager::delegate(std::unique_ptr<User> &user, EpollEventType type) {
   int ret = user->fd();
   table_.emplace(ret, user.release());
   epoll_.add(*table_[ret], type);
   return ret;
 }
 
-int UserManager::delegate(std::unique_ptr<tg::HttpUser> &&user, tg::EpollEventType type)  {
+int UserManager::delegate(std::unique_ptr<User> &&user, EpollEventType type)  {
   int ret = user->fd();
   table_.emplace(ret, user.release());
   epoll_.add(*table_[ret], type);
   return ret;
 }
 
-void UserManager::activate(int id, EpollEventType type)  {
+void UserManager::activate(int id) {
   if (!contains(id)) {
-    throw std::invalid_argument("`UserManager::addEventsOfReadable` no such user.");
+    throw std::invalid_argument("`UserManager::activate` no such user.");
   }
-  epoll_.modify(*table_[id], type);
+  epoll_.modify(*table_[id], table_[id]->type());
 }
 
 void UserManager::release(int id) {
@@ -52,6 +52,26 @@ void UserManager::doReadable(int id) {
     throw std::invalid_argument("`UserManager::doReadable` no such user.");
   }
   table_[id]->onRead();
+}
+
+void UserManager::doWriteable(int id) {
+  if (!contains(id)) {
+    throw std::invalid_argument("`UserManager::doWriteable` no such user.");
+  }
+  table_[id]->onWrite();
+}
+
+void UserManager::adapt(int id) {
+  if (!contains(id)) {
+    throw std::invalid_argument("`UserManager::adapt` no such user.");
+  }
+
+  auto &user = *table_[id];
+  if (user.closeable()) {
+    release(id);
+  } else {
+    epoll_.modify(*table_[id], table_[id]->type());
+  }
 }
 
 }

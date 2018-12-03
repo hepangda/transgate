@@ -63,12 +63,8 @@ inline bool isuri(char c) {
 }
 }
 
-bool HttpParser::isParsed() const {
-  return f_.err != kHPEFine && f_.err != kHPENotAvailable;
-}
-
 bool HttpParser::isFinished() const {
-  return isParsed() && f_.err != kHPEExceptedContent;
+  return f_.err == kHPEParsed;
 }
 
 bool HttpParser::parseable() {
@@ -109,10 +105,8 @@ bool HttpParser::parseable() {
   case kHPSCRLF:
   case kHPSCRLFCR:
     return stream_->readable() >= 1;
-  case kHPSCRLFCRLF:
-    return true;
   case kHPSDied:
-    if (f_.err == kHPEExceptedContent) return stream_->readable() == f_.content_length;
+    if (f_.err == kHPEExceptedContent) return stream_->readable() >= f_.content_length;
     return false;
   }
 
@@ -242,10 +236,8 @@ bool HttpParser::parseOnce() {
       stmapr(isheader(c), kHPSHeader, f_.header_starts = stream_->readptr());
       reject(kHPEInvalidHeader);
     case kHPSCRLFCR:
-      stmap(c == LF, kHPSCRLFCRLF);
+      stmapr(c == LF, kHPSDied, f_.err = kHPEExceptedContent);
       reject(kHPECRLF);
-    case kHPSCRLFCRLF:
-      reject(kHPEExceptedContent);
     case kHPSHeader:
       stmapr(isheader(c), kHPSHeader, ++f_.header_length);
       stmap(c == ':', kHPSColon);
@@ -303,7 +295,7 @@ void HttpParser::setParseResult() {
   }
 
   if (!f_.keep_alive_set) {
-    f_.keep_alive = (f_.ver_major != 0);
+    f_.keep_alive = (f_.ver_minor != 0);
   }
 
   if (f_.keep_alive) {
@@ -312,6 +304,9 @@ void HttpParser::setParseResult() {
 
   request_->set_content_starts(stream_->readptr());
   request_->set_content_length(f_.content_length);
+  request_->set_error(f_.err);
+  request_->set_major_version(f_.ver_major);
+  request_->set_minor_version(f_.ver_minor);
 }
 
 HttpParserErrors HttpParser::doParse() {
@@ -321,6 +316,8 @@ HttpParserErrors HttpParser::doParse() {
 
   bool is_done = parseOnce();
   if (is_done) setParseResult();
+  if (f_.err == kHPEExceptedContent && parseable()) return f_.err = kHPEParsed;
+
   return f_.err;
 }
 

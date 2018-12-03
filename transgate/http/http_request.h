@@ -36,7 +36,10 @@ class HttpRequest : public Noncopyable {
   void set_content_starts(const char *content_starts) { content_starts_ = content_starts; }
   void set_content_length(int content_length) { content_length_ = content_length; }
   void set_stream(std::shared_ptr<CharBuffer> stream) { stream_ = std::move(stream); }
-  void set_flag(int flags) { flags_ = flags; }
+  void set_flag(HttpFlags flags) { flags_ = flags; }
+  void set_error(HttpParserErrors error) { error_ = error; }
+  void set_major_version(int ver_major) { ver_major_ = ver_major; }
+  void set_minor_version(int ver_minor) { ver_minor_ = ver_minor; }
 
   HttpMethod method() const { return method_; }
   HttpStatusCode code() const { return code_; }
@@ -46,16 +49,26 @@ class HttpRequest : public Noncopyable {
   bool flags(HttpFlags flag) const { return (flags_ & flag) != 0; }
   StringView getValue(const StringView &key) const;
   FieldContainer &fields() { return fields_; }
+  HttpParserErrors error() const { return error_; }
+  int major_version() const { return ver_major_; }
+  int minor_version() const { return ver_minor_; }
+  bool isKeepalive() { return flags_ & kHFKeepAlive == 1; }
 
+  bool good() { return error_ == kHPEParsed; }
  private:
   HttpMethod method_ = kHMInvalid;
+  HttpFlags flags_ = kHFNothing;
   HttpStatusCode code_ = kHCNotDone;
-  StringView uri_;
-  FieldContainer fields_;
+  HttpParserErrors error_ = kHPEFine;
+
+  int ver_major_ = 1;
+  int ver_minor_ = 0;
   int content_length_ = 0;
   const char *content_starts_ = nullptr;
+
+  StringView uri_;
+  FieldContainer fields_;
   std::shared_ptr<CharBuffer> stream_ = nullptr;
-  int flags_ = kHFNothing;
 };
 
 }

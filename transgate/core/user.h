@@ -12,8 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_HTTP_USER_H
-#define TRANSGATE_HTTP_USER_H
+#ifndef TRANSGATE_USER_H
+#define TRANSGATE_USER_H
 
 #include <memory>
 
@@ -21,48 +21,39 @@
 #include "../base/linuxfile.h"
 #include "../net/tcp_socket.h"
 #include "../net/write_loop.h"
-#include "http_request.h"
-#include "http_provider.h"
-#include "http_parser.h"
+#include "../http/http_request.h"
+#include "content_provider.h"
+#include "../http/http_parser.h"
+#include "../net/epoll_event.h"
 
 namespace tg {
 
-class HttpUser : public Noncopyable, public LinuxFile {
+class User : public Noncopyable, public LinuxFile {
  public:
-  explicit HttpUser(std::unique_ptr<TcpSocket> &&user) { user.swap(user_); }
-  explicit HttpUser(int fd) { user_ = std::make_unique<TcpSocket>(fd); }
-  virtual ~HttpUser();
+  explicit User(std::unique_ptr<TcpSocket> &&user) { user.swap(user_); }
+  explicit User(int fd) { user_ = std::make_unique<TcpSocket>(fd); }
+  virtual ~User();
 
   int fd() const final;
 
   void onRead();
-  void try_consume();
+  void onWrite();
+
+  bool closeable();
+  EpollEventType type();
  private:
   std::shared_ptr<CharBuffer> read_buffer_ = nullptr;
   std::shared_ptr<WriteLoop> write_loop_ = nullptr;
 
   std::shared_ptr<HttpRequest> request_ = nullptr;
-  std::unique_ptr<HttpProvider> provider_ = nullptr;
+  std::unique_ptr<ContentProvider> provider_ = nullptr;
   std::unique_ptr<HttpParser> parser_ = nullptr;
 
   std::unique_ptr<TcpSocket> user_;
 
-  enum class Preparation {
-    ReadBuffer,
-    WriteLoop,
-    Request,
-    Provider,
-    Parser,
-  };
-  void prepare(Preparation what);
-};
-
-struct HttpUserHash {
-  size_t operator()(const HttpUser &http_user) {
-    return std::hash<int>()(http_user.fd());
-  }
+  void prepare();
 };
 
 };
 
-#endif // TRANSGATE_HTTP_USER_H
+#endif // TRANSGATE_USER_H

@@ -12,17 +12,23 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "http_request.h"
+#include "static_provider.h"
 
 namespace tg {
 
-StringView HttpRequest::getValue(const tg::StringView &key) const {
-  auto it = fields_.find(key);
-  if (it == fields_.end()) {
-    return { nullptr, 0 };
+void StaticProvider::provide() {
+  if (!request_->good()) {
+    provide();
+    return;
   }
-  return it->second;
+  // std::make_shared<FileReader>(wwwrootfd, request_.uri())
+  write_loop_->appendSendfile(std::make_shared<FileReader>("/home/pangda/wwwroot/index.html"));
+
 }
 
+void StaticProvider::provideError() {
+  writeHead(request_->major_version(), request_->minor_version(), request_->code());
+
+}
 
 }

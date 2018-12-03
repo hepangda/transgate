@@ -14,12 +14,22 @@
 
 #include "write_loop.h"
 
+#include <cstdarg>
 #include <sys/socket.h>
 #include <sys/sendfile.h>
 
 #include "../utils/file_reader.h"
 
 namespace tg {
+
+int WriteLoop::swrite(const char *format, ...) {
+  va_list va;
+  va_start(va, format);
+  int ret = buffer_->swrite(format, va);
+  va_end(va);
+  write(ret);
+  return ret;
+}
 
 bool WriteLoop::doOnce() {
   if (q_.empty()) return false;

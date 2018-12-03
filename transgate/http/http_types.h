@@ -48,6 +48,58 @@ enum HttpFlags {
   kHFKeepAlive = 1,
 };
 
+enum HttpParserState {
+  kHPSBegin,
+
+  kHPSMetOptions,
+  kHPSMetHead,
+  kHPSMetGet,
+  kHPSMetPost,
+  kHPSMetAlmostDone,
+  kHPSMetDone,
+
+  kHPSUriStart,
+  kHPSUri,
+  kHPSUriEnd,
+
+  kHPSVerHttpSlash,
+  kHPSVerMajor,
+  kHPSVerDot,
+  kHPSVerMinor,
+  kHPSVerEnd,
+
+  kHPSCR,
+  kHPSCRLF,
+  kHPSCRLFCR,
+
+  kHPSHeader,
+  kHPSColon,
+  kHPSValue,
+  kHPSDied,
+};
+
+enum HttpParserErrors {
+  // Not Finished
+  kHPEFine,
+  kHPENotAvailable,
+
+  // Parsed, but excepted content
+  kHPEExceptedContent,
+
+  // Finished
+  kHPEParsed,   // finish without errors
+  kHPEInvalidMethod,
+  kHPEInvalidUri,
+  kHPEInvalidVersion,
+  kHPEInvalidContentLength,
+  kHPEUnsupportedVersion,
+  kHPECRLF,
+  kHPEInvalidHeader,
+  kHPEUnrecognizedChar,
+  kHPEUnexceptedEnd,
+  kHPEEntityTooLarge,
+};
+
 }
 
 #endif // TRANSGATE_HTTP_TYPES_H

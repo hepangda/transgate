@@ -12,14 +12,26 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "http_provider.h"
+#ifndef TRANSGATE_STATIC_PROVIDER_H
+#define TRANSGATE_STATIC_PROVIDER_H
 
-#include "../utils/file_reader.h"
+#include <memory>
+
+#include "provider.h"
+#include "../../http/http_request.h"
+#include "../../net/write_loop.h"
 
 namespace tg {
 
-void HttpProvider::provide() {
-  write_loop_->appendSendfile(std::make_shared<FileReader>("/home/pangda/wwwroot/index.html"));
-}
+class StaticProvider : public Provider {
+ public:
+  StaticProvider(const std::shared_ptr<HttpRequest> &request_, const std::shared_ptr<WriteLoop> &write_loop_) :
+      Provider(request_, write_loop_) {}
+  void provide() final;
+ private:
+  void provideError();
+};
 
 }
+
+#endif // TRANSGATE_STATIC_PROVIDER_H
