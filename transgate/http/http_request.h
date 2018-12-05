@@ -52,7 +52,7 @@ class HttpRequest : public Noncopyable {
   HttpParserErrors error() const { return error_; }
   int major_version() const { return ver_major_; }
   int minor_version() const { return ver_minor_; }
-  bool isKeepalive() { return flags_ & kHFKeepAlive == 1; }
+  bool isKeepalive() { return (flags_ & kHFKeepAlive) == 1; }
 
   bool good() { return error_ == kHPEParsed; }
  private:

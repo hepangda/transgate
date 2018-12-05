@@ -2,10 +2,20 @@ cmake_minimum_required(VERSION 3.11)
 project(transgate)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-lpthread -g")
+link_libraries(pthread)
+add_definitions("-O3")
 aux_source_directory(./transgate/base SOURCE_BASE)
 aux_source_directory(./transgate/core SOURCE_CORE)
+aux_source_directory(./transgate/core/providers SOURCE_PROVIDERS)
 aux_source_directory(./transgate/net SOURCE_NET)
 aux_source_directory(./transgate/http SOURCE_HTTP)
 aux_source_directory(./transgate/utils SOURCE_UTILS)
-add_executable(transgate main.cc ${SOURCE_BASE} ${SOURCE_CORE} ${SOURCE_NET} ${SOURCE_HTTP} ${SOURCE_UTILS} transgate/core/content_provider.cc transgate/core/content_provider.h transgate/utils/file_proxy.cc transgate/utils/file_proxy.h transgate/utils/file_reader.cc transgate/utils/file_reader.h transgate/core/providers/static_provider.cc transgate/core/providers/static_provider.h transgate/core/providers/provider.h transgate/core/providers/provider.cc)
+add_executable(transgate
+        main.cc
+        ${SOURCE_BASE}
+        ${SOURCE_CORE}
+        ${SOURCE_NET}
+        ${SOURCE_HTTP}
+        ${SOURCE_UTILS}
+        ${SOURCE_PROVIDERS}
+        )

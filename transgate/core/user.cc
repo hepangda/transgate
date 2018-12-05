@@ -29,12 +29,15 @@ EpollEventType User::type() {
 void User::onRead() {
   prepare();
 
-  for (int ret; (ret = user_->read(read_buffer_)) != -1;) {}
+  for (int ret; (ret = user_->read(read_buffer_)) > 0;) {}
+
+  if (parser_->isFinished()) {
+    parser_->clear();
+  }
 
   parser_->doParse();
   if (parser_->isFinished()) {
     provider_->provide();
-    parser_->clear();
   }
 
   write_loop_->doAll();

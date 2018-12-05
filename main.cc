@@ -18,4 +18,6 @@
 int main(int argc, const char *argv[]) {
   ConcurrencyProxy proxy{[] { tg::Transgate().run(); }};
   return proxy.wait();
+//  tg::Transgate().run();
+//  return 0;
 }

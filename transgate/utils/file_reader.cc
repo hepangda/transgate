@@ -20,7 +20,6 @@
 namespace tg {
 
 long FileReader::sendfile(int socket_fd) {
-  std::cout << 1111;
   return ::sendfile(socket_fd, fd(), &offset_, static_cast<size_t>(length_ - offset_));
 }
 

@@ -61,10 +61,49 @@ inline bool isuri(char c) {
 
   return (c >= 0) ? isuri[c] : false;
 }
+
+inline bool isvalue(char c) {
+  static bool isvalue[] = {
+/*0   nul    soh    stx    etx    eot    enq    ack    bel     7*/
+      false, false, false, false, false, false, false, false,
+/*8   bs     ht     nl     vt     np     cr     so     si     15*/
+      false, false, false, false, false, false, false, false,
+/*16  dle    dc1    dc2    dc3    dc4    nak    syn    etb    23*/
+      false, false, false, false, false, false, false, false,
+/*24  can    em     sub    esc    fs     gs     rs     us     31*/
+      false, false, false, false, false, false, false, false,
+/*32  ' '    !      "      #     $     %     &     '          39*/
+      true, true, true, true, true, true, true, true,
+/*40  (      )      *      +     ,     -     .     /          47*/
+      true, true, true, true, true, true, true, true,
+/*48  0     1     2     3     4     5     6     7             55*/
+      true, true, true, true, true, true, true, true,
+/*56  8     9     :     ;     <      =     >      ?           63*/
+      true, true, true, true, true, true, true, true,
+/*64  @     A     B     C     D     E     F     G             71*/
+      true, true, true, true, true, true, true, true,
+/*72  H     I     J     K     L     M     N     O             79*/
+      true, true, true, true, true, true, true, true,
+/*80  P     Q     R     S     T     U     V     W             87*/
+      true, true, true, true, true, true, true, true,
+/*88  X     Y     Z     [      \      ]      ^      _         95*/
+      true, true, true, true, true, true, true, true,
+/*96  `      a     b     c     d     e     f     g           103*/
+      true, true, true, true, true, true, true, true,
+/*104 h     i     j     k     l     m     n     o            113*/
+      true, true, true, true, true, true, true, true,
+/*112 p     q     r     s     t     u     v     w            119*/
+      true, true, true, true, true, true, true, true,
+/*120 x     y     z     {      |      }      ~      del      127*/
+      true, true, true, true, true, true, true, false
+  };
+
+  return (c >= 0) ? isvalue[c] : false;
+}
 }
 
 bool HttpParser::isFinished() const {
-  return f_.err == kHPEParsed;
+  return (f_.err != kHPEFine) && (f_.err != kHPENotAvailable) && (f_.err != kHPEExceptedContent);
 }
 
 bool HttpParser::parseable() {
@@ -244,10 +283,10 @@ bool HttpParser::parseOnce() {
       reject(kHPEUnrecognizedChar);
     case kHPSColon:
       stmap(c == ' ', kHPSColon);
-      stmapr(isuri(c), kHPSValue, f_.value_starts = stream_->readptr());
+      stmapr(isvalue(c), kHPSValue, f_.value_starts = stream_->readptr());
       reject(kHPEUnrecognizedChar);
     case kHPSValue:
-      stmapr(isuri(c), kHPSValue, ++f_.value_length);
+      stmapr(isvalue(c), kHPSValue, ++f_.value_length);
       stmap(c == CR, kHPSCR);
       reject(kHPEUnrecognizedChar);
     default:
@@ -310,13 +349,21 @@ void HttpParser::setParseResult() {
 }
 
 HttpParserErrors HttpParser::doParse() {
-  if (f_.err == kHPEParsed) return f_.err;
-  if (!parseable()) return f_.err = kHPENotAvailable;
-  if (f_.err == kHPEExceptedContent) return f_.err = kHPEParsed;
+  if (f_.err != kHPEParsed) {
+    if (!parseable()) {
+      f_.err = kHPENotAvailable;
+    } else if (f_.err == kHPEExceptedContent) {
+      f_.err = kHPEParsed;
+      setParseResult();
+    } else if (parseOnce()) {
+      setParseResult();
+    }
 
-  bool is_done = parseOnce();
-  if (is_done) setParseResult();
-  if (f_.err == kHPEExceptedContent && parseable()) return f_.err = kHPEParsed;
+    if (f_.err == kHPEExceptedContent && parseable()) {
+      f_.err = kHPEParsed;
+      setParseResult();
+    }
+  }
 
   return f_.err;
 }

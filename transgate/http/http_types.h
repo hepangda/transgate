@@ -100,6 +100,41 @@ enum HttpParserErrors {
   kHPEEntityTooLarge,
 };
 
+constexpr const char *httpCodeDescription(int code) {
+  switch (code) {
+  case kHCOk:
+    return "OK";
+  case kHCPartialContent:
+    return "Partial Content";
+  case kHCMovedPermanently:
+    return "Moved Permanently";
+  case kHCFound:
+    return "Found";
+  case kHCBadRequest:
+    return "Bad Request";
+  case kHCForbidden:
+    return "Forbidden";
+  case kHCMethodNotAllowed:
+    return "Method Not Allowed";
+  case kHCLengthRequired:
+    return "Length Required";
+  case kHCRequestEntityTooLarge:
+    return "Request Entity Too Large";
+  case kHCInternalServerError:
+    return "Internal Server Error";
+  case kHCNotImplemented:
+    return "Not Implemented";
+  case kHCBadGateway:
+    return "Bad Gateway";
+  case kHCGatewayTimeout:
+    return "Gateway Timeout";
+  case kHCHttpVersionNotSupported:
+    return "Http Version Not Supported";
+  default:
+    return "Unknown";
+  }
+}
+
 }
 
 #endif // TRANSGATE_HTTP_TYPES_H

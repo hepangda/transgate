@@ -27,11 +27,20 @@ class Provider {
       request_(std::move(request_)), write_loop_(std::move(write_loop_)) {}
   virtual void provide() = 0;
  protected:
-  void writeHead(int ver_major, int ver_minor, HttpStatusCode code);
-  void writeItem(const char *key, const char *value);
-  void writeItemConnection(bool keep_alive);
-  void writeItemDate();
-  void writeCRLF();
+  int writeHead(int ver_major, int ver_minor, HttpStatusCode code);
+  int writeItem(const char *key, const char *value);
+  int writeItemConnection(bool keep_alive);
+  int writeItemDate();
+  int writeCRLF();
+
+  int provideError();
+  int regularProvide(bool keep_alive, int content_length, const char *mime);
+  int regularProvide(bool keep_alive, int content_length);
+
+  const char *adaptMIME() const;
+  constexpr const char *defaultMIME() const { return "text/html"; }
+  const char *mimeTable(const char *ext, size_t n) const;
+  bool isFilename(char x) const;
 
   std::shared_ptr<HttpRequest> request_;
   std::shared_ptr<WriteLoop> write_loop_;
