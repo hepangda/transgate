@@ -31,6 +31,7 @@ class Provider {
   void writeItem(const char *key, const char *value);
   void writeItemConnection(bool keep_alive);
   void writeItemDate();
+  void writeCRLF();
 
   std::shared_ptr<HttpRequest> request_;
   std::shared_ptr<WriteLoop> write_loop_;

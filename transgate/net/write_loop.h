@@ -34,6 +34,7 @@ class WriteLoop {
   void doAll() { while (doOnce()) {}}
 
   void appendSend(int length) { q_.emplace_back([this, length] { return actSend(length); }); }
+  void appendSend() { appendSend(buffer_->readable()); }
   void appendSendfile(const std::shared_ptr<FileReader> &file) { q_.emplace_back([this, file] { return actSendfile(file); }); }
   template <typename Callable>
   void appendChore(Callable f) { q_.emplace_back(f); }

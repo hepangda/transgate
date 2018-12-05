@@ -78,4 +78,8 @@ void Provider::writeItemConnection(bool keep_alive) {
   writeItem("Connection", keep_alive ? "keep-alive" : "close");
 }
 
+void Provider::writeCRLF() {
+  write_loop_->write("\r\n", 2);
+}
+
 }

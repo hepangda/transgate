@@ -30,6 +30,9 @@ class StaticProvider : public Provider {
   void provide() final;
  private:
   void provideError();
+  void regularProvide(bool keep_alive, int content_length, const char *mime);
+  void regularProvide(bool keep_alive, int content_length);
+  const char *adaptMIME();
 };
 
 }

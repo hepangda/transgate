@@ -46,7 +46,7 @@ class ContentProvider {
  public:
   explicit ContentProvider(std::shared_ptr<WriteLoop> wl, std::shared_ptr<HttpRequest> req):
     write_loop_(std::move(wl)), request_(std::move(req)) {}
-//  virtual void provide() = 0;
+  void provide();
  protected:
   std::unique_ptr<Provider> impl_ = nullptr;
   std::shared_ptr<HttpRequest> request_ = nullptr;

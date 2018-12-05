@@ -15,9 +15,13 @@
 #include "content_provider.h"
 
 #include "../utils/file_reader.h"
+#include "providers/static_provider.h"
 
 namespace tg {
 
-
+void ContentProvider::provide() {
+  impl_ = std::make_unique<StaticProvider>(request_, write_loop_);
+  impl_->provide();
+}
 
 }
