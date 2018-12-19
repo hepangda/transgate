@@ -40,23 +40,6 @@ int TcpSocket::write(void *buffer, int length, int flags) const {
   return static_cast<int>(::send(socket_fd_, buffer, static_cast<size_t>(length), flags));
 }
 
-//int TcpSocket::write(tg::Buffer &buffer, int length, int flags) const {
-//  if (length == -1 || length > buffer.writeable()) {
-//    length = buffer.readable();
-//  }
-//
-//  int written_bytes = static_cast<int>(::send(socket_fd_, buffer.rptr(), static_cast<size_t>(length), flags));
-//  if (written_bytes != -1) {
-//    buffer.doRead(written_bytes);
-//  }
-//
-//  return written_bytes;
-//}
-//
-//int TcpSocket::write(tg::Buffer &&buffer, int flags) const {
-//  return static_cast<int>(::send(socket_fd_, buffer.rptr(), static_cast<size_t>(buffer.readable()), flags));
-//}
-
 int TcpSocket::fd() const {
   return socket_fd_;
 }

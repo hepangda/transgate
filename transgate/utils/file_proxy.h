@@ -31,6 +31,7 @@ class FileProxy: public Noncopyable, public LinuxFile {
   virtual ~FileProxy();
 
   int fd() const final { return fd_; }
+  bool good() const { return fd_ > 0; }
   long size();
  private:
   int fd_;

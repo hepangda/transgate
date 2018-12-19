@@ -12,26 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_TG_H
-#define TRANSGATE_TG_H
-
-
-#include "../net/tcp_server.h"
-#include "../net/epoll.h"
-#include "user_manager.h"
+#include "config_provider.h"
 
 namespace tg {
 
-class Transgate {
- public:
-  Transgate();
-  void run();
- private:
-  UserManager usrmgr_;
-  TcpServer server_;
-  Epoll epoll_;
-};
+
 
 }
-
-#endif // TRANSGATE_TG_H

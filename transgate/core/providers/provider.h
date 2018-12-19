@@ -34,8 +34,8 @@ class Provider {
   int writeCRLF();
 
   int provideError();
-  int regularProvide(bool keep_alive, int content_length, const char *mime);
-  int regularProvide(bool keep_alive, int content_length);
+  int regularProvide(bool keep_alive, long content_length, const char *mime);
+  int regularProvide(bool keep_alive, long content_length);
 
   const char *adaptMIME() const;
   constexpr const char *defaultMIME() const { return "text/html"; }

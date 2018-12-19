@@ -63,7 +63,7 @@ int Provider::provideError() {
   return ret;
 }
 
-int Provider::regularProvide(bool keep_alive, int content_length, const char *mime) {
+int Provider::regularProvide(bool keep_alive, long content_length, const char *mime) {
   int ret = writeHead(request_->major_version(), request_->minor_version(), request_->code());
   ret += writeItemDate();
   ret += writeItemConnection(keep_alive);
@@ -72,7 +72,7 @@ int Provider::regularProvide(bool keep_alive, int content_length, const char *mi
   return ret;
 }
 
-int Provider::regularProvide(bool keep_alive, int content_length) {
+int Provider::regularProvide(bool keep_alive, long content_length) {
   return regularProvide(keep_alive, content_length, adaptMIME());
 }
 
@@ -173,7 +173,6 @@ const char *Provider::mimeTable(const char *ext, size_t n) const {
   ie (".frm", "application/x-frm");
   ie (".g4", "application/x-g4");
   ie (".gbr", "application/x-gbr");
-  ie (".", "application/x-");
   ie (".gif", "image/gif");
   ie (".gl2", "application/x-gl2");
   ie (".gp4", "application/x-gp4");
@@ -207,8 +206,7 @@ const char *Provider::mimeTable(const char *ext, size_t n) const {
   ie (".jpeg", "image/jpeg");
   ie (".jpg", "image/jpeg");
   ie (".jpg", "application/x-jpg");
-  ie (".js", "application/x-javascript");
-  ie (".jsp", "text/html");
+  ie (".js", "application/javascript");
   ie (".la1", "audio/x-liquid-file");
   ie (".lar", "application/x-laplayer-reg");
   ie (".latex", "application/x-latex");

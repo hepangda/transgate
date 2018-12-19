@@ -25,6 +25,8 @@
 
 namespace tg {
 
+Transgate::Transgate() : server_(InetAddress(8090)), usrmgr_(epoll_) {}
+
 void Transgate::run() {
   try {
     signal(SIGPIPE, SIG_IGN);

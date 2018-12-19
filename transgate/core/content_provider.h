@@ -29,7 +29,7 @@ namespace tg {
  * HTTP/1.1 200 OK
  * Server: Transgate 1.0
  * Content-Type: text/html
- * Content-Length: chunked/xxxx
+ * Content-Length: chunked(unsupported)/xxxx
  * Connection: close/keep-alive
  * Date: Mon, 03 Dec 2018 13:29:44 GMT
  *

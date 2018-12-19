@@ -18,4 +18,4 @@ add_executable(transgate
         ${SOURCE_HTTP}
         ${SOURCE_UTILS}
         ${SOURCE_PROVIDERS}
-        )
+        transgate/core/config_provider.cc transgate/core/config_provider.h)
