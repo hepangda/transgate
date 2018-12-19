@@ -17,12 +17,51 @@
 
 #include <string>
 #include <vector>
+#include <regex>
+
+#include "../utils/file_proxy.h"
 
 namespace tg {
 
-class SiteConfig {
+enum FcgiMode {
+  kFMInet,
+  kFMUnix,
+};
+
+class HostConfig {
  public:
+  const std::string &host() const { return host_; }
+  const FileProxy &wwwroot() const { return *wwwroot_; }
+  bool isForbidden(const char *uri) const;
+  FileProxy defaultFiles() const;
+
+  void set_host(std::string host) { host_ = std::move(host); }
+  void set_wwwroot(const std::string &wwwroot) { wwwroot_ = std::make_unique<FileProxy>(wwwroot.c_str()); }
+  void set_default_file(std::string filename);
+  void set_forbidden_regex(std::regex regex) { forbidden_regexs_.emplace_back(regex); }
  private:
+  std::string host_;
+  std::unique_ptr<FileProxy> wwwroot_ = nullptr;
+  std::vector<std::unique_ptr<FileProxy>> default_files_;
+  std::vector<std::regex> forbidden_regexs_;
+};
+
+class FcgiConfig {
+ public:
+  FcgiMode mode() const { return mode_; }
+  const char *gateway() const { return gateway_.c_str(); }
+  bool isExtends(const char *extends);
+  int port() const { return port_; }
+
+  void set_mode(FcgiMode mode) { mode_ = mode; }
+  void set_gateway(std::string gateway) { gateway_ = std::move(gateway); }
+  void set_port(int port) { port_ = port; }
+  void set_extneds(std::string extends) { extends_.emplace_back(extends); }
+ private:
+  FcgiMode mode_;
+  std::string gateway_;
+  std::vector<std::string> extends_;
+  int port_;
 };
 
 class ConfigProvider {
@@ -31,29 +70,23 @@ class ConfigProvider {
   int serverPort() const { return server_port_; }
   int serverMaxContentLength() const { return server_max_content_length_; }
   int serverKeepConnectionTime() const { return server_keep_connection_time_; }
-  int serverInstances() const { return server_instances_; }
+  unsigned int serverInstances() const { return server_instances_; }
 
-//  const char *hostDefaultFiles() const { return host_default_files_; }
-//  bool fcgiExtends() const { return ; }
-  int fcgiMode() const { return fastcgi_mode_; }
-  int fcgiPort() const { return fastcgi_port_; }
-  const char *fcgiGateway() const { return fastcgi_gateway_; }
+  static const ConfigProvider &get() {
+    static ConfigProvider cp;
+    return cp;
+  }
  private:
-  int evloop_epoll_events_; // Trasgate
-  int server_port_ = 80; // Transgate
-  int server_max_content_length_ = 256; //HttpParser
+  ConfigProvider() = default;
+
+  int evloop_epoll_events_ = 100;        // Trasgate (o)
+  int server_port_ = 8080;               // Transgate (o)
+  int server_max_content_length_ = 256;  // HttpParser (o)
   int server_keep_connection_time_ = 20; // User
-  int server_instances_ = -1; // ConcurrencyProxy
+  unsigned int server_instances_ = 0;    // ConcurrencyProxy (o)
 
-  std::vector<std::string> host_default_files_ = { "index.html" };
-  std::vector<std::string> fastcgi_extends_;
-
-  // FastCGI Mode
-  // 1 AF_INET
-  // 2 AF_UNIX
-  int fastcgi_mode_ = 1;
-  int fastcgi_port_ = 9000;
-  const char *fastcgi_gateway_ = "localhost";
+  std::vector<HostConfig> hosts_;
+  std::vector<FcgiConfig> fcgis_;
 };
 
 }

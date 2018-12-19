@@ -122,6 +122,7 @@ class HttpResponse {
                                          "\r\n\r\n", 4);
 
                 if (p == NULL) {
+                              DOUT("FCGI BAD REQUEST") ENL;
                   req->setStatus(HttpRequestStatus::BAD_REQUEST);
                   throw ResponseError();
                 }

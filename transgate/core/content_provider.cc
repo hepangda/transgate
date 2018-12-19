@@ -20,6 +20,7 @@
 namespace tg {
 
 void ContentProvider::provide() {
+  // 检测是否为动态请求
   if (!impl_) {
     impl_ = std::make_unique<StaticProvider>(request_, write_loop_);
   }

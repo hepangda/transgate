@@ -28,6 +28,8 @@ void StaticProvider::provide() {
     return;
   }
   request_->set_code(kHCOk);
+  // 1 找到是哪个host
+  // 2 从host的配置文件里面找到基准目录
   auto file = std::make_shared<FileReader>("/home/pangda/wwwroot/index.html");
 
   int ret = regularProvide(true, file->size());

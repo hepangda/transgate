@@ -15,6 +15,7 @@
 #include "http_types.h"
 #include "http_request.h"
 #include "http_parser.h"
+#include "../core/config_provider.h"
 
 namespace tg {
 
@@ -305,8 +306,7 @@ bool HttpParser::parseOnce() {
 }
 
 void HttpParser::setParseResult() {
-  // TODO: FIX MAGIC NUMBER
-  if (f_.content_length >= 200000) {
+  if (f_.content_length >= ConfigProvider::get().serverMaxContentLength()) {
     f_.err = kHPEEntityTooLarge;
     return;
   }

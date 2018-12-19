@@ -19,13 +19,14 @@
 #include "../net/epoll_event_result.h"
 #include "../utils/string_view.h"
 #include "user.h"
+#include "config_provider.h"
 #include <iostream>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
 namespace tg {
 
-Transgate::Transgate() : server_(InetAddress(8090)), usrmgr_(epoll_) {}
+Transgate::Transgate() : server_(InetAddress(ConfigProvider::get().serverPort())), usrmgr_(epoll_) {}
 
 void Transgate::run() {
   try {
@@ -34,8 +35,7 @@ void Transgate::run() {
     server_.bindAndListen();
     epoll_.add(server_, ETEOReadable());
 
-    // TODO: FIX MAGIC NUMBER
-    EpollEventResult event_result{100};
+    EpollEventResult event_result{ConfigProvider::get().evloopEpollEvents()};
 
     for (;;) {
       epoll_.wait(event_result);

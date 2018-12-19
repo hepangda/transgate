@@ -1,4 +1,4 @@
-// #define TRANSGATE_DEBUG
+#define TRANSGATE_DEBUG
 #include <unistd.h>
 #include <iostream>
 #include <string_view>

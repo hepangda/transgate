@@ -18,13 +18,18 @@
 #include <thread>
 #include <vector>
 
+#include "../core/config_provider.h"
+
+namespace tg {
+
 class ConcurrencyProxy {
  public:
   template <typename Callable, typename ...Args>
   explicit ConcurrencyProxy(Callable func, Args ...args) {
-    thcont_.reserve(std::thread::hardware_concurrency());
+    auto instances = ConfigProvider::get().serverInstances();
+    thcont_.reserve(instances);
 
-    for (int i = 0; i < std::thread::hardware_concurrency(); ++i) {
+    for (int i = 0; i < instances; ++i) {
       thcont_.emplace_back(std::forward<Callable>(func), std::forward<Args>(args)...);
     }
   }
@@ -39,5 +44,7 @@ class ConcurrencyProxy {
  private:
   std::vector<std::thread> thcont_;
 };
+
+}
 
 #endif // TRANSGATE_CONCURRENCY_PROXY_H
