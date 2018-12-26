@@ -15,9 +15,9 @@
 #include "transgate/core/tg.h"
 #include "transgate/utils/concurrency_proxy.h"
 
+#include <iostream>
 int main(int argc, const char *argv[]) {
-  ConcurrencyProxy proxy{[] { tg::Transgate().run(); }};
+  tg::ConfigProvider::get();
+  tg::ConcurrencyProxy proxy{[] { tg::Transgate().run(); }};
   return proxy.wait();
-//  tg::Transgate().run();
-//  return 0;
 }

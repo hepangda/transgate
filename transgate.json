@@ -1,0 +1,33 @@
+{
+  "evloop": {
+    "epoll_events": 100
+  },
+  "server": {
+    "port": 8080,
+    "max_content_length": 8192,
+    "keep_connection_time": 20,
+    "instances": 0
+  },
+  "sites": [
+    {
+      "enable": true,
+      "host": "<any>",
+      "wwwroot": "/home/pangda/wwwroot",
+      "default_files": [
+        "index.html"
+      ],
+      "forbidden_regexes": [],
+      "fastcgi": [
+        {
+          "enable": true,
+          "mode": "tcp",
+          "gateway": "127.0.0.1",
+          "port": 9000,
+          "extends": [
+            "php"
+          ]
+        }
+      ]
+    }
+  ]
+}
