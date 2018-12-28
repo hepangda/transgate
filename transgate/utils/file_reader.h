@@ -15,6 +15,8 @@
 #ifndef TRANSGATE_FILE_READER_H
 #define TRANSGATE_FILE_READER_H
 
+#include <memory>
+
 #include "file_proxy.h"
 
 namespace tg {

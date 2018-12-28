@@ -17,7 +17,9 @@
 #include "../utils/file_reader.h"
 #include "providers/static_provider.h"
 #include "config_provider.h"
+#include "providers/fastcgi_provider.h"
 
+#include <iostream>
 namespace tg {
 
 namespace detail {
@@ -54,7 +56,7 @@ void ContentProvider::provide() {
   if (host && host->isEnabledFastcgi()) {
     auto fcgi_config = host->adaptFcgi(detail::fileExtends(request_->uri()).c_str());
     if (fcgi_config) {
-      // impl_ = std::make_unique<FcgiProvider>(request_, write_loop_, host, fcgi_config);
+       impl_ = std::make_unique<FastcgiProvider>(request_, write_loop_, host, fcgi_config);
     }
   } else {
     request_->set_bad();

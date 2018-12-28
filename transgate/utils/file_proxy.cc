@@ -20,7 +20,7 @@
 namespace tg {
 
 FileProxy::FileProxy(const char *path) : fd_(open(path, O_RDONLY)) {}
-FileProxy::FileProxy(FileProxy &directory, const char *path) : fd_(openat(directory.fd(), path, O_RDONLY)) {}
+FileProxy::FileProxy(const FileProxy &directory, const char *path) : fd_(openat(directory.fd(), path, O_RDONLY)) {}
 
 FileProxy::~FileProxy() {
   close(fd_);
@@ -29,6 +29,11 @@ FileProxy::~FileProxy() {
 off_t FileProxy::size() {
   prepareStat();
   return stat_->st_size;
+}
+
+bool FileProxy::isDirectory() {
+  prepareStat();
+  return (stat_->st_mode & S_IFDIR) != 0;
 }
 
 void FileProxy::prepareStat() {

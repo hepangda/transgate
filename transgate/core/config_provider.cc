@@ -46,13 +46,20 @@ bool FcgiConfig::isExtends(const char *extends) const {
   return false;
 }
 
-std::unique_ptr<FileProxy> HostConfig::defaultFile(const char *prefix) const {
-  FileProxy directory{prefix};
-  if (!directory.good())
+std::shared_ptr<FileReader> HostConfig::defaultFile(const char *prefix) const {
+  std::shared_ptr<FileProxy> directory = nullptr;
+
+  if (strcmp(prefix, "") == 0) {
+    directory = wwwroot_;
+  } else {
+    directory = std::make_shared<FileProxy>(*wwwroot_, prefix);
+  }
+
+  if (!directory->good())
     return nullptr;
 
   for (const auto &i: default_files_) {
-    auto r = std::make_unique<FileProxy>(directory, i.c_str());
+    auto r = std::make_shared<FileReader>(*directory, i.c_str());
     if (r->good()) {
       return r;
     }

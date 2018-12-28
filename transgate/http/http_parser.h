@@ -17,8 +17,8 @@
 
 #include <memory>
 
-#include "../base/noncopyable.h"
 #include "http_types.h"
+#include "../base/noncopyable.h"
 #include "../utils/readable_buffer.h"
 
 namespace tg {

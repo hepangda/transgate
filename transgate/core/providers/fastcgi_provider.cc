@@ -12,35 +12,12 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_FILE_PROXY_H
-#define TRANSGATE_FILE_PROXY_H
-
-#include <memory>
-
-#include <sys/stat.h>
-
-#include "../base/linuxfile.h"
-#include "../base/noncopyable.h"
+#include "fastcgi_provider.h"
 
 namespace tg {
 
-class FileProxy: public Noncopyable, public LinuxFile {
- public:
-  explicit FileProxy(const char *path);
-  FileProxy(const FileProxy &directory, const char *path);
-  virtual ~FileProxy();
-
-  int fd() const final { return fd_; }
-  bool good() const { return fd_ > 0; }
-  long size();
-  bool isDirectory();
- private:
-  int fd_;
-  std::unique_ptr<struct stat> stat_ = nullptr;
-
-  void prepareStat();
-};
+void FastcgiProvider::provide() {
 
 }
 
-#endif // TRANSGATE_FILE_PROXY_H
+}

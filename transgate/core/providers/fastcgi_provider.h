@@ -12,35 +12,24 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#ifndef TRANSGATE_FILE_PROXY_H
-#define TRANSGATE_FILE_PROXY_H
+#ifndef TRANSGATE_FASTCGI_PROVIDER_H
+#define TRANSGATE_FASTCGI_PROVIDER_H
 
-#include <memory>
-
-#include <sys/stat.h>
-
-#include "../base/linuxfile.h"
-#include "../base/noncopyable.h"
-
+#include "provider.h"
 namespace tg {
 
-class FileProxy: public Noncopyable, public LinuxFile {
+class FastcgiProvider : public Provider {
  public:
-  explicit FileProxy(const char *path);
-  FileProxy(const FileProxy &directory, const char *path);
-  virtual ~FileProxy();
-
-  int fd() const final { return fd_; }
-  bool good() const { return fd_ > 0; }
-  long size();
-  bool isDirectory();
+  FastcgiProvider(const std::shared_ptr<HttpRequest> &request,
+                  const std::shared_ptr<WriteLoop> &write_loop,
+                  const std::shared_ptr<HostConfig> &host,
+                  std::shared_ptr<FcgiConfig> fcgi) :
+      Provider(request, write_loop, host), fcgi_config_(std::move(fcgi)) {}
+  void provide() final;
  private:
-  int fd_;
-  std::unique_ptr<struct stat> stat_ = nullptr;
-
-  void prepareStat();
+  std::shared_ptr<FcgiConfig> fcgi_config_;
 };
 
 }
 
-#endif // TRANSGATE_FILE_PROXY_H
+#endif // TRANSGATE_FASTCGI_PROVIDER_H

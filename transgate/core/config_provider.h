@@ -20,6 +20,7 @@
 #include <regex>
 
 #include "../utils/file_proxy.h"
+#include "../utils/file_reader.h"
 
 namespace tg {
 
@@ -52,7 +53,7 @@ class HostConfig {
   std::shared_ptr<FileProxy> wwwroot() const { return wwwroot_; }
   bool isForbidden(const char *uri) const;
   bool isEnabledFastcgi() const { return !fcgi_config_.empty(); }
-  std::unique_ptr<FileProxy> defaultFile(const char *prefix) const;
+  std::shared_ptr<FileReader> defaultFile(const char *prefix) const;
   std::shared_ptr<FcgiConfig> adaptFcgi(const char *extends) const;
 
   void set_host(std::string host) { host_ = std::move(host); }

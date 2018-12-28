@@ -22,24 +22,55 @@
 
 namespace tg {
 
-void StaticProvider::provide() {
-  if (!request_->good()) {
-    provideError();
-    return;
-  }
-  request_->set_code(kHCOk);
-  // 1 找到是哪个host
-  // 2 从host的配置文件里面找到基准目录
-  auto file = std::make_shared<FileReader>(*host_config_->wwwroot(), request_->uri().toString());
+namespace detail {
 
-  int ret = regularProvide(true, file->size());
-  ret += writeCRLF();
-  // std::make_shared<FileReader>(wwwrootfd, request_.uri())
-  write_loop_->appendSend(ret);
-  write_loop_->appendSendfile(file);
-  ret = writeCRLF();
-  write_loop_->appendSend(ret);
+std::string getUri(const HttpRequest &request) {
+  if (request.uri().size() == 1) {
+    return ".";
+  } else if (request.uri().size() > 0 && *request.uri().readptr() == '/') {
+    return std::move(std::string(request.uri().readptr() + 1, static_cast<unsigned int>(request.uri().size() - 1)));
+  }
+  return request.uri().toString();
 }
 
+}
+
+void StaticProvider::provide() {
+  std::shared_ptr<FileReader> file = nullptr;
+  bool cond = staticProvide(file);
+  if (cond) {
+    request_->set_code(kHCOk);
+    int ret = regularProvide(true, file->size());
+    ret += writeCRLF();
+    write_loop_->appendSend(ret);
+    write_loop_->appendSendfile(file);
+    ret = writeCRLF();
+    write_loop_->appendSend(ret);
+  } else {
+    provideError();
+  }
+}
+
+bool StaticProvider::staticProvide(std::shared_ptr<FileReader> &file) {
+  if (!request_->good())
+    return false;
+  if (host_config_->isForbidden(request_->uri().toString().c_str())) {
+    request_->set_code(kHCForbidden);
+    return false;
+  }
+
+  file = std::make_shared<FileReader>(*host_config_->wwwroot(), detail::getUri(*request_));
+
+  if (file->good() && file->isDirectory()) {
+    file = host_config_->defaultFile(detail::getUri(*request_).c_str());
+  }
+
+  if (!file || !file->good()) {
+    request_->set_code(kHCNotFound);
+    return false;
+  }
+
+  return true;
+}
 
 }
