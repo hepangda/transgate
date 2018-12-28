@@ -47,18 +47,20 @@ void UserManager::release(int id) {
   table_.erase(id);
 }
 
-void UserManager::doReadable(int id) {
+void UserManager::doReadable(int id, long time) {
   if (!contains(id)) {
     throw std::invalid_argument("`UserManager::doReadable` no such user.");
   }
   table_[id]->onRead();
+  table_[id]->touch(time);
 }
 
-void UserManager::doWriteable(int id) {
+void UserManager::doWriteable(int id, long time) {
   if (!contains(id)) {
     throw std::invalid_argument("`UserManager::doWriteable` no such user.");
   }
   table_[id]->onWrite();
+  table_[id]->touch(time);
 }
 
 void UserManager::adapt(int id) {
@@ -71,6 +73,16 @@ void UserManager::adapt(int id) {
     release(id);
   } else {
     epoll_.modify(*table_[id], table_[id]->type());
+  }
+}
+
+void UserManager::eliminate(long time) {
+  for (auto it = table_.cbegin(); it != table_.cend(); ) {
+    if (time - it->second->time_stamp() >= ConfigProvider::get().serverKeepConnectionTime()) {
+      table_.erase(it++);
+    } else {
+      ++it;
+    }
   }
 }
 
