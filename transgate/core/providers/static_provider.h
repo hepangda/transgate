@@ -20,13 +20,14 @@
 #include "provider.h"
 #include "../../http/http_request.h"
 #include "../../net/write_loop.h"
+#include "../config_provider.h"
 
 namespace tg {
 
 class StaticProvider : public Provider {
  public:
-  StaticProvider(const std::shared_ptr<HttpRequest> &request_, const std::shared_ptr<WriteLoop> &write_loop_) :
-      Provider(request_, write_loop_) {}
+  StaticProvider(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<WriteLoop> &write_loop, const std::shared_ptr<HostConfig> host) :
+      Provider(request, write_loop, host) {}
   void provide() final;
  private:
 };

@@ -44,10 +44,13 @@ bool StringView::equalsWithoutCase(const char *rhs) const {
   return strncasecmp(ptr_, rhs, static_cast<size_t>(length_)) == 0;
 }
 
+std::string StringView::toString() const {
+  return std::move(std::string(ptr_, static_cast<unsigned int>(length_)));
+}
+
 std::ostream &operator<<(std::ostream &os, const StringView &view) {
   os.write(view.readptr(), view.readable());
   return os;
 }
-
 
 }

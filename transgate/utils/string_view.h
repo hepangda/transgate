@@ -56,6 +56,7 @@ class StringView : public ReadableBuffer, public Copyable {
   bool equalsWithoutCase(const StringView &rhs) const;
   bool equalsWithoutCase(const char *rhs) const;
 
+  std::string toString() const;
  private:
   const char *ptr_ = nullptr;
   int length_ = 0;

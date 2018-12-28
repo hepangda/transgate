@@ -14,10 +14,15 @@
 
 #include "http_request.h"
 
+#include <algorithm>
+
 namespace tg {
 
-StringView HttpRequest::getValue(const tg::StringView &key) const {
-  auto it = fields_.find(key);
+StringView HttpRequest::getValue(const StringView &key) const {
+  auto it = std::find_if(fields_.begin(), fields_.end(), [&key] (auto a) -> bool {
+    return a.first.equalsWithoutCase(key);
+  });
+
   if (it == fields_.end()) {
     return { nullptr, 0 };
   }

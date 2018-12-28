@@ -40,6 +40,7 @@ class HttpRequest : public Noncopyable {
   void set_error(HttpParserErrors error) { error_ = error; }
   void set_major_version(int ver_major) { ver_major_ = ver_major; }
   void set_minor_version(int ver_minor) { ver_minor_ = ver_minor; }
+  void set_bad() { error_ = kHPEOther; }
 
   HttpMethod method() const { return method_; }
   HttpStatusCode code() const { return code_; }

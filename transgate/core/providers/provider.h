@@ -18,13 +18,16 @@
 #include "../../http/http_request.h"
 #include "../../http/http_types.h"
 #include "../../net/write_loop.h"
+#include "../config_provider.h"
 
 namespace tg {
 
 class Provider {
  public:
-  Provider(std::shared_ptr<HttpRequest> request_, std::shared_ptr<WriteLoop> write_loop_) :
-      request_(std::move(request_)), write_loop_(std::move(write_loop_)) {}
+  Provider(std::shared_ptr<HttpRequest> request_,
+           std::shared_ptr<WriteLoop> write_loop_,
+           std::shared_ptr<HostConfig> host) :
+      request_(std::move(request_)), write_loop_(std::move(write_loop_)), host_config_(std::move(host)) {}
   virtual void provide() = 0;
  protected:
   int writeHead(int ver_major, int ver_minor, HttpStatusCode code);
@@ -44,6 +47,7 @@ class Provider {
 
   std::shared_ptr<HttpRequest> request_;
   std::shared_ptr<WriteLoop> write_loop_;
+  std::shared_ptr<HostConfig> host_config_;
 };
 
 }

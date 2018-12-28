@@ -52,7 +52,7 @@ void User::prepare() {
   if (!read_buffer_) read_buffer_ = std::make_shared<CharBuffer>(2048);
   if (!write_loop_) write_loop_ = std::make_shared<WriteLoop>(fd(), 2048);
   if (!request_) request_ = std::make_shared<HttpRequest>();
-  if (!provider_) provider_ = std::make_unique<ContentProvider>(write_loop_, request_); //todo: finish it
+  if (!provider_) provider_ = std::make_unique<ContentProvider>(write_loop_, request_);
   if (!parser_) parser_ = std::make_unique<HttpParser>(read_buffer_, request_);
 }
 

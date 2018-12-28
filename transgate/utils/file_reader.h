@@ -23,6 +23,7 @@ class FileReader : public FileProxy {
  public:
   explicit FileReader(const char *path): FileProxy(path) {}
   FileReader(FileProxy &directory, const char *path): FileProxy(directory, path) {}
+  FileReader(FileProxy &directory, const std::string &path): FileProxy(directory, path.c_str()) {}
 
   long sendfile(int socket_fd);
   bool isDone() const { return length_ == offset_; }

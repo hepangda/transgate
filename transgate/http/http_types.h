@@ -32,7 +32,8 @@ enum HttpStatusCode {
   kHCMovedPermanently = 301,
   kHCFound = 302,
   kHCBadRequest = 400,
-  kHCForbidden = 404,
+  kHCForbidden = 403,
+  kHCNotFound = 404,
   kHCMethodNotAllowed = 405,
   kHCLengthRequired = 411,
   kHCRequestEntityTooLarge = 413,
@@ -98,6 +99,7 @@ enum HttpParserErrors {
   kHPEUnrecognizedChar,
   kHPEUnexceptedEnd,
   kHPEEntityTooLarge,
+  kHPEOther,
 };
 
 constexpr const char *httpCodeDescription(int code) {
@@ -114,6 +116,8 @@ constexpr const char *httpCodeDescription(int code) {
     return "Bad Request";
   case kHCForbidden:
     return "Forbidden";
+  case kHCNotFound:
+    return "Not Found";
   case kHCMethodNotAllowed:
     return "Method Not Allowed";
   case kHCLengthRequired:

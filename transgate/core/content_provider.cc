@@ -16,13 +16,53 @@
 
 #include "../utils/file_reader.h"
 #include "providers/static_provider.h"
+#include "config_provider.h"
 
 namespace tg {
 
+namespace detail {
+
+bool isFilename(char x) {
+  return !(x == '?' || x == '\\' || x == '/' || x == '*' ||
+      x == '\"' || x == '\'' || x == '<' || x == '>' || x == '|');
+}
+
+std::string fileExtends(const StringView &uri) {
+  const char *ext_start = uri.readptr() + uri.size(),
+      *ext_end = ext_start;
+
+  for (; ext_start != uri.readptr(); ext_start--) {
+    if (*ext_start == '.') {
+      break;
+    } else if (!isFilename(*ext_start)) {
+      ext_end = ext_start;
+    }
+  }
+
+  return ext_start == uri.readptr() ?
+         "" : std::string(ext_start, static_cast<size_t>(std::distance(ext_start, ext_end)));
+}
+}
+
 void ContentProvider::provide() {
-  // 检测是否为动态请求
+  static const StringView host_string{"host"};
+
+  auto value = request_->getValue(host_string).toString();
+  auto host = ConfigProvider::get().adaptHost(value.c_str());
+  impl_ = nullptr;
+
+  if (host && host->isEnabledFastcgi()) {
+    auto fcgi_config = host->adaptFcgi(detail::fileExtends(request_->uri()).c_str());
+    if (fcgi_config) {
+      // impl_ = std::make_unique<FcgiProvider>(request_, write_loop_, host, fcgi_config);
+    }
+  } else {
+    request_->set_bad();
+    request_->set_code(kHCNotFound);
+  }
+
   if (!impl_) {
-    impl_ = std::make_unique<StaticProvider>(request_, write_loop_);
+    impl_ = std::make_unique<StaticProvider>(request_, write_loop_, host);
   }
   impl_->provide();
 }
