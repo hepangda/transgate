@@ -188,7 +188,7 @@ class ServerSocket : public Socket {
   }
 
   inline int listen() {
-    int ret = ::listen(_sktfd, 100);  // FIXME: MAGIC NUMBER TO CONFIG
+    int ret = ::listen(_sktfd, 100);
     if (ret < 0) {
       throw std::runtime_error("Cannot listen.");
     }
