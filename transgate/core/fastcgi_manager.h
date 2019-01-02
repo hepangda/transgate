@@ -12,12 +12,26 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "tcp_client.h"
+#ifndef TRANSGATE_FASTCGI_MANAGER_H
+#define TRANSGATE_FASTCGI_MANAGER_H
+
+#include <queue>
+#include "../net/epoll.h"
+#include "providers/fastcgi_provider.h"
 
 namespace tg {
 
-void TcpClient::connect() {
-  bad_ = ::connect(fd(), addr_.pointer(), addr_.length());
-}
+class FastcgiManager {
+ public:
+  FastcgiManager() = default;
+  void delegate(FastcgiProvider provider);
+  void poll();
+
+ private:
+  std::unordered_map<int, std::shared_ptr<FastcgiProvider>> providing_map_;
+  Epoll epoll_;
+};
 
 }
+
+#endif // TRANSGATE_FASTCGI_MANAGER_H

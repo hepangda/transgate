@@ -52,7 +52,7 @@ void StaticProvider::provide() {
 }
 
 bool StaticProvider::staticProvide(std::shared_ptr<FileReader> &file) {
-  if (!request_->good())
+  if (!request_->good() || !host_config_)
     return false;
   if (host_config_->isForbidden(request_->uri().toString().c_str())) {
     request_->set_code(kHCForbidden);

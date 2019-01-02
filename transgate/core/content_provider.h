@@ -20,6 +20,7 @@
 #include "../net/write_loop.h"
 #include "../http/http_request.h"
 #include "providers/provider.h"
+#include "../utils/generic_buffer.h"
 
 namespace tg {
 
@@ -46,7 +47,7 @@ class ContentProvider {
  public:
   explicit ContentProvider(std::shared_ptr<WriteLoop> wl, std::shared_ptr<HttpRequest> req):
     write_loop_(std::move(wl)), request_(std::move(req)) {}
-  void provide();
+  void provide(std::shared_ptr<GenericBuffer> interaction_buffer_);
  protected:
   std::unique_ptr<Provider> impl_ = nullptr;
   std::shared_ptr<HttpRequest> request_ = nullptr;

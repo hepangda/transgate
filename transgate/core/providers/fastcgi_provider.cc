@@ -16,8 +16,4 @@
 
 namespace tg {
 
-void FastcgiProvider::provide() {
-
-}
-
 }

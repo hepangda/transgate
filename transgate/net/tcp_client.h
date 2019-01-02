@@ -22,13 +22,15 @@ namespace tg {
 
 class TcpClient : public TcpSocket /* Noncopyable, LinuxFile */ {
  public:
-//  TcpClient(): addr_(0) {}
+  explicit TcpClient(InetAddress &&addr): addr_(addr), TcpSocket() {}
   TcpClient(int fd, const InetAddress &addr): TcpSocket(fd), addr_(addr) {}
   TcpClient(int fd, InetAddress &&addr): TcpSocket(fd), addr_(addr) {}
 
   InetAddress address() const { return addr_; }
+  void connect();
  private:
   InetAddress addr_;
+  int bad_ = 0;
 };
 
 }

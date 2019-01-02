@@ -14,6 +14,8 @@
 
 #include "user.h"
 
+#include "core_marks.h"
+
 namespace tg {
 
 User::~User() {
@@ -37,7 +39,10 @@ void User::onRead() {
 
   parser_->doParse();
   if (parser_->isFinished()) {
-    provider_->provide();
+    provider_->provide(interaction_buffer_);
+    if (interaction_buffer_->get_mark(kCMFcgi)) {
+
+    }
   }
 
   write_loop_->doAll();
@@ -49,16 +54,15 @@ void User::onWrite() {
 }
 
 void User::prepare() {
-  if (!read_buffer_) read_buffer_ = std::make_shared<CharBuffer>(2048);
-  if (!write_loop_) write_loop_ = std::make_shared<WriteLoop>(fd(), 2048);
+  if (!read_buffer_) read_buffer_ = std::make_shared<CharBuffer>(8192);
+  if (!write_loop_) write_loop_ = std::make_shared<WriteLoop>(fd(), 8192);
   if (!request_) request_ = std::make_shared<HttpRequest>();
   if (!provider_) provider_ = std::make_unique<ContentProvider>(write_loop_, request_);
   if (!parser_) parser_ = std::make_unique<HttpParser>(read_buffer_, request_);
+  if (!interaction_buffer_) interaction_buffer_ = std::make_shared<GenericBuffer>(256);
 }
 
 bool User::closeable() {
-  // todo: 长时间没有响应了，那么也关闭
-
   if (!request_) return false;
   return parser_->isFinished() && !request_->isKeepalive() && write_loop_->empty();
 }

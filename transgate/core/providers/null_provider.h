@@ -12,12 +12,19 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "tcp_client.h"
+#ifndef TRANSGATE_NULL_PROVIDER_H
+#define TRANSGATE_NULL_PROVIDER_H
+
+#include "provider.h"
 
 namespace tg {
 
-void TcpClient::connect() {
-  bad_ = ::connect(fd(), addr_.pointer(), addr_.length());
-}
+class NullProvider : public Provider {
+ public:
+  NullProvider() : Provider(nullptr, nullptr, nullptr) {}
+  void provide() final {}
+};
 
 }
+
+#endif // TRANSGATE_NULL_PROVIDER_H

@@ -18,6 +18,8 @@
 #include "providers/static_provider.h"
 #include "config_provider.h"
 #include "providers/fastcgi_provider.h"
+#include "providers/null_provider.h"
+#include "core_marks.h"
 
 #include <iostream>
 namespace tg {
@@ -46,7 +48,7 @@ std::string fileExtends(const StringView &uri) {
 }
 }
 
-void ContentProvider::provide() {
+void ContentProvider::provide(std::shared_ptr<GenericBuffer> interaction_buffer_) {
   static const StringView host_string{"host"};
 
   auto value = request_->getValue(host_string).toString();
@@ -56,7 +58,9 @@ void ContentProvider::provide() {
   if (host && host->isEnabledFastcgi()) {
     auto fcgi_config = host->adaptFcgi(detail::fileExtends(request_->uri()).c_str());
     if (fcgi_config) {
-       impl_ = std::make_unique<FastcgiProvider>(request_, write_loop_, host, fcgi_config);
+      interaction_buffer_->write_cast<FastcgiProvider>() = {request_, write_loop_, host, fcgi_config};
+      interaction_buffer_->set_mark(kCMFcgi);
+      impl_ = std::make_unique<NullProvider>();
     }
   } else {
     request_->set_bad();

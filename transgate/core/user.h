@@ -25,19 +25,24 @@
 #include "content_provider.h"
 #include "../http/http_parser.h"
 #include "../net/epoll_event.h"
+#include "../utils/generic_buffer.h"
 
 namespace tg {
 
 class User : public Noncopyable, public LinuxFile {
  public:
-  explicit User(std::unique_ptr<TcpSocket> &&user) { user.swap(user_); }
-  explicit User(int fd) { user_ = std::make_unique<TcpSocket>(fd); }
+  explicit User(std::unique_ptr<TcpSocket> &&user, long ts) : time_stamp_(ts) { user.swap(user_); }
+  explicit User(int fd, long ts): time_stamp_(ts), user_(std::make_unique<TcpSocket>(fd)) { }
   virtual ~User();
 
   int fd() const final;
 
   void onRead();
   void onWrite();
+  long time_stamp() const { return time_stamp_; }
+  void touch(long time) { time_stamp_ = time; }
+
+  std::shared_ptr<GenericBuffer> get_interaction_buffer() const { return interaction_buffer_; }
 
   bool closeable();
   EpollEventType type();
@@ -50,7 +55,8 @@ class User : public Noncopyable, public LinuxFile {
   std::unique_ptr<HttpParser> parser_ = nullptr;
 
   std::unique_ptr<TcpSocket> user_;
-
+  std::shared_ptr<GenericBuffer> interaction_buffer_;
+  long time_stamp_;
   void prepare();
 };
 

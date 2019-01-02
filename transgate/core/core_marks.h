@@ -12,12 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "tcp_client.h"
+#ifndef TRANSGATE_CORE_MARKS_H
+#define TRANSGATE_CORE_MARKS_H
 
 namespace tg {
 
-void TcpClient::connect() {
-  bad_ = ::connect(fd(), addr_.pointer(), addr_.length());
-}
+constexpr int kCMGeneral = 0;
+constexpr int kCMFcgi = 1;
 
 }
+#endif // TRANSGATE_CORE_MARKS_H

@@ -37,9 +37,10 @@ class UserManager {
   void release(int id);
 
   void adapt(int id);
+  void eliminate(long time);
 
-  void doReadable(int id);
-  void doWriteable(int id);
+  void doReadable(int id, long time);
+  void doWriteable(int id, long time);
  private:
   Epoll &epoll_;
   std::unordered_map<int, std::unique_ptr<User>> table_;

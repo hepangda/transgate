@@ -26,6 +26,16 @@
 
 namespace tg {
 
+namespace detail {
+
+struct Timer {
+  long ts = 0;
+  Timer() { update(); }
+  void update() { ts = time(nullptr); }
+};
+
+}
+
 Transgate::Transgate() : server_(InetAddress(ConfigProvider::get().serverPort())), usrmgr_(epoll_) {}
 
 void Transgate::run() {
@@ -38,25 +48,30 @@ void Transgate::run() {
     EpollEventResult event_result{ConfigProvider::get().evloopEpollEvents()};
 
     for (;;) {
-      epoll_.wait(event_result);
+      constexpr int kASecond = 1000;
+      epoll_.waitUntil(event_result, kASecond);
 
       for (int i = 0; i < event_result.size(); i++) {
+        detail::Timer tm;
+
         auto &it = event_result[i];
         int id = it.event_fd();
 
         if (it.event_fd() == server_.fd()) {
-          server_.acceptAll([this](int fd) { usrmgr_.delegate(std::make_unique<User>(fd), ETEOReadable()); });
+          server_.acceptAll([this, tm](int fd) { usrmgr_.delegate(std::make_unique<User>(fd, tm.ts), ETEOReadable()); });
           epoll_.modify(server_, ETEOReadable());
         } else if (it.check(kEPSocketClosed)) {
           usrmgr_.release(id);
         } else if (it.check(kEPReadable)) {
-          usrmgr_.doReadable(id);
+          usrmgr_.doReadable(id, tm.ts);
           usrmgr_.adapt(id);
         } else if (it.check(kEPWriteable)) {
-          usrmgr_.doWriteable(id);
+          usrmgr_.doWriteable(id, tm.ts);
           usrmgr_.adapt(id);
         }
       }
+
+      usrmgr_.eliminate(detail::Timer().ts);
     }
 
   } catch (std::exception &ex) {

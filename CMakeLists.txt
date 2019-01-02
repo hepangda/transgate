@@ -3,7 +3,7 @@ project(transgate)
 
 set(CMAKE_CXX_STANDARD 14)
 link_libraries(pthread)
-add_definitions("-g")
+add_definitions("-Og")
 aux_source_directory(./transgate/base SOURCE_BASE)
 aux_source_directory(./transgate/core SOURCE_CORE)
 aux_source_directory(./transgate/core/providers SOURCE_PROVIDERS)
@@ -18,4 +18,4 @@ add_executable(transgate
         ${SOURCE_HTTP}
         ${SOURCE_UTILS}
         ${SOURCE_PROVIDERS}
-        transgate/core/config_provider.cc transgate/core/config_provider.h)
+        transgate/core/core_marks.h transgate/core/providers/fastcgi_provider.cc)

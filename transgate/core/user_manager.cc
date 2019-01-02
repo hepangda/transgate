@@ -15,6 +15,7 @@
 #include "user_manager.h"
 
 #include "user.h"
+#include "core_marks.h"
 
 namespace tg {
 
@@ -51,8 +52,13 @@ void UserManager::doReadable(int id, long time) {
   if (!contains(id)) {
     throw std::invalid_argument("`UserManager::doReadable` no such user.");
   }
-  table_[id]->onRead();
-  table_[id]->touch(time);
+
+  std::unique_ptr<User> &user = table_[id];
+  user->onRead();
+  if (user->get_interaction_buffer()->get_mark(kCMFcgi)) {
+
+  }
+  user->touch(time);
 }
 
 void UserManager::doWriteable(int id, long time) {
