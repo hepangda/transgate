@@ -34,12 +34,39 @@ void FastcgiManager::poll() {
     auto &it = event_result[i];
     int id = it.event_fd();
 
-    if (it.check(kEPReadable)) {
+    if (providing_map_.count(id) == 0) {
+      epoll_.remove(EpollEvent(id));
+      continue;
+    }
 
+    const auto &obj = providing_map_[id];
+
+    if (it.check(kEPReadable)) {
+      switch (obj->stage()) {
+      case kFSRecving:
+      case kFSParsing:
+      case kFSForwarding:
+      default:
+        break;
+      }
     }
 
     if (it.check(kEPWriteable)) {
+      switch (obj->stage()) {
+      case kFSBegin: // 连接已完成
+        obj->set_stage(kFSConnected);
+      case kFSConnected:
+        // 准备发送给fcgi的数据
+        break;
+      case kFSSending:    // 继续发送
+        // 继续发送
+        // if (发送完了) obj->set_stage(kFSSent); 并开始监听obj事件
+        // TODO: 想到一个优化，write_loop在发现一致时应该直接合并了
+      case kFSSent:
 
+      default:
+        break;
+      }
     }
   }
 }

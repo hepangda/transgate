@@ -44,10 +44,10 @@ constexpr EpollEventType ETEOAllof() { return EpollEventType(ETEOReadable() | ET
 
 class EpollEvent final : public Copyable {
  public:
-  explicit EpollEvent(): event_() {}
-  EpollEvent(const LinuxFile &linux_file, EpollEventType type): event_() {
-    event_ = epoll_event{type, {.fd = linux_file.fd()}};
-  }
+  EpollEvent() : event_() {}
+  explicit EpollEvent(int fd) : event_(epoll_event{ETEOAllof(), {.fd = fd}}) {}
+  EpollEvent(const LinuxFile &linux_file, EpollEventType type) :
+      event_(epoll_event{type, {.fd = linux_file.fd()}}) {}
 
   bool check(EpollEventType evt) const { return (event_.events & evt) != 0; }
   bool check(std::initializer_list<EpollEventType> evt) const {

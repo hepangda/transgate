@@ -10,6 +10,7 @@ aux_source_directory(./transgate/core/providers SOURCE_PROVIDERS)
 aux_source_directory(./transgate/net SOURCE_NET)
 aux_source_directory(./transgate/http SOURCE_HTTP)
 aux_source_directory(./transgate/utils SOURCE_UTILS)
+aux_source_directory(./transgate/fastcgi SOURCE_FCGI)
 add_executable(transgate
         main.cc
         ${SOURCE_BASE}
@@ -18,4 +19,6 @@ add_executable(transgate
         ${SOURCE_HTTP}
         ${SOURCE_UTILS}
         ${SOURCE_PROVIDERS}
-        transgate/core/core_marks.h transgate/core/providers/fastcgi_provider.cc)
+        ${SOURCE_FCGI}
+        ./transgate/fastcgi/fcgi_types.h
+        )
