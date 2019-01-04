@@ -16,8 +16,11 @@
 #define TRANSGATE_FCGI_TYPES_H
 
 #include <cstdint>
+#include <memory>
 
 namespace tg {
+
+constexpr uint8_t kFcgiVersion = 1;
 
 enum FcgiPacketType {
   kFPTBeginRequest = 1,
@@ -76,6 +79,14 @@ struct FcgiParamsBody {
   uint32_t value_length;
 };
 
+using FcgiParamsPtr = std::unique_ptr<char[]>;
+
+
+std::unique_ptr<FcgiHeader> FcgiMakeHeader(FcgiPacketType type, int content_length, int padding_length, int req_id);
+std::unique_ptr<FcgiBeginRequestBody> FcgiMakeBeginRequestBody(FcgiRole role, FcgiFlags flags);
+std::unique_ptr<FcgiEndRequestBody> FcgiMakeEndRequestBody(int app, FcgiProtocolStatus protocol);
+FcgiParamsPtr FcgiMakeParams(int name_length, int value_length, const char *name, const char *value);
+FcgiParamsPtr FcgiMakeParams(std::string name, std::string value);
 
 }
 
