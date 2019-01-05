@@ -16,11 +16,12 @@
 #define TRANSGATE_TCP_SOCKET_H
 
 #include <sys/socket.h>
+#include <memory>
 
 #include "../base/linuxfile.h"
 #include "../base/copyable.h"
 #include "../utils/char_buffer.h"
-#include <memory>
+
 
 namespace tg {
 

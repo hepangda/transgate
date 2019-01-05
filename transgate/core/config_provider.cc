@@ -14,7 +14,6 @@
 
 #include "config_provider.h"
 
-#include <cstdio>
 #include <thread>
 
 #include "../rapidjson/document.h"

@@ -14,9 +14,7 @@
 
 #include "content_provider.h"
 
-#include "../utils/file_reader.h"
 #include "providers/static_provider.h"
-#include "config_provider.h"
 #include "providers/fastcgi_provider.h"
 #include "providers/null_provider.h"
 #include "core_marks.h"

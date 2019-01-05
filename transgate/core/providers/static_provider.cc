@@ -14,11 +14,7 @@
 
 #include "static_provider.h"
 
-#include <cctype>
 #include <iostream>
-
-#include "../../utils/file_reader.h"
-#include "../../http/http_types.h"
 
 namespace tg {
 

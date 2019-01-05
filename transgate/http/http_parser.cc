@@ -13,7 +13,6 @@
 //  limitations under the License.
 #include "http_parser.h"
 
-#include "http_types.h"
 #include "http_request.h"
 #include "../core/config_provider.h"
 

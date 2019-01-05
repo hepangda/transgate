@@ -13,7 +13,6 @@
 //  limitations under the License.
 
 #include "fastcgi_manager.h"
-#include <iostream>
 
 namespace tg {
 

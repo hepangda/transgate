@@ -16,7 +16,6 @@
 
 #include <cstdarg>
 #include <sys/socket.h>
-#include <sys/sendfile.h>
 
 #include "../utils/file_reader.h"
 
