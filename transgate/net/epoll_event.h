@@ -46,6 +46,7 @@ class EpollEvent final : public Copyable {
  public:
   EpollEvent() : event_() {}
   explicit EpollEvent(int fd) : event_(epoll_event{ETEOAllof(), {.fd = fd}}) {}
+  EpollEvent(int fd, EpollEventType type) : event_(epoll_event{type, {.fd = fd}}) {}
   EpollEvent(const LinuxFile &linux_file, EpollEventType type) :
       event_(epoll_event{type, {.fd = linux_file.fd()}}) {}
 

@@ -15,7 +15,6 @@
 #include "file_reader.h"
 
 #include <sys/sendfile.h>
-#include <iostream>
 
 namespace tg {
 

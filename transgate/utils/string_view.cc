@@ -14,7 +14,6 @@
 
 #include "string_view.h"
 
-#include <cstring>
 #include <iostream>
 
 namespace tg {

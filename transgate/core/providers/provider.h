@@ -22,7 +22,7 @@
 
 namespace tg {
 
-class Provider {
+class Provider : Copyable {
  public:
   Provider(std::shared_ptr<HttpRequest> request_,
            std::shared_ptr<WriteLoop> write_loop_,

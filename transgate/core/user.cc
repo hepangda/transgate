@@ -14,8 +14,6 @@
 
 #include "user.h"
 
-#include "core_marks.h"
-
 namespace tg {
 
 User::~User() {
@@ -40,9 +38,6 @@ void User::onRead() {
   parser_->doParse();
   if (parser_->isFinished()) {
     provider_->provide(interaction_buffer_);
-    if (interaction_buffer_->get_mark(kCMFcgi)) {
-
-    }
   }
 
   write_loop_->doAll();

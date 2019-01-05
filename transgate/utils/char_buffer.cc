@@ -76,8 +76,16 @@ bool CharBuffer::clean(int bytes) {
   // todo:fix magic number
 
   memmove(store_.get(), readptr(), static_cast<size_t>(interval));
-  write_pos_ = read_pos_ = 0;
+  read_pos_ = 0;
+  write_pos_ = interval;
   return true;
+}
+
+void CharBuffer::move() {
+  int interval = write_pos_ - read_pos_;
+  memmove(store_.get(), readptr(), static_cast<size_t>(interval));
+  read_pos_ = 0;
+  write_pos_ = interval;
 }
 
 }

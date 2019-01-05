@@ -16,7 +16,6 @@
 
 #include <strings.h>
 #include <cassert>
-#include <stdexcept>
 
 namespace tg {
 
@@ -26,9 +25,7 @@ InetAddress::InetAddress(const char *address, int port) {
   bzero(&addr_, sizeof(addr_));
   addr_.sin_family = AF_INET;
   addr_.sin_port = htons(static_cast<uint16_t >(port));
-  if (inet_pton(AF_INET, address, &addr_) <= 0) {
-    throw std::runtime_error("`InetAddress::InetAddress` Cannot convert IPv4 address/port to struct");
-  }
+  addr_.sin_addr.s_addr = inet_addr(address);
 }
 
 InetAddress::InetAddress(int port, bool loop_back_only) {

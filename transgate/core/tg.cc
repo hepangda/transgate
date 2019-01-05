@@ -16,10 +16,6 @@
 
 #include <signal.h>
 
-#include "../net/epoll_event_result.h"
-#include "../utils/string_view.h"
-#include "user.h"
-#include "config_provider.h"
 #include <iostream>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -48,7 +44,7 @@ void Transgate::run() {
     EpollEventResult event_result{ConfigProvider::get().evloopEpollEvents()};
 
     for (;;) {
-      constexpr int kASecond = 1000;
+      constexpr int kASecond = 100;
       epoll_.waitUntil(event_result, kASecond);
 
       for (int i = 0; i < event_result.size(); i++) {
@@ -70,7 +66,7 @@ void Transgate::run() {
           usrmgr_.adapt(id);
         }
       }
-
+      usrmgr_.fcgiPoll();
       usrmgr_.eliminate(detail::Timer().ts);
     }
 

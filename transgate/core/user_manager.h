@@ -20,6 +20,7 @@
 
 #include "../net/epoll.h"
 #include "user.h"
+#include "fastcgi_manager.h"
 
 namespace tg {
 
@@ -41,8 +42,11 @@ class UserManager {
 
   void doReadable(int id, long time);
   void doWriteable(int id, long time);
+
+  void fcgiPoll() { fcgimgr_.poll(); }
  private:
   Epoll &epoll_;
+  FastcgiManager fcgimgr_;
   std::unordered_map<int, std::unique_ptr<User>> table_;
 };
 

@@ -40,11 +40,17 @@ class CharBuffer : public ReadableBuffer, Noncopyable {
   char peek(int nums) const final;
 
   int write(int bytes);
+  int write(void *src, int bytes) { return write(static_cast<char *>(src), bytes); }
   int write(const char *src, int bytes);
   int write(const char *src);
   int write(const std::string &str) { return write(str, static_cast<int>(str.length())); }
   int write(const std::string &str, int bytes = -1);
   int swrite(const char *format, va_list va);
+
+  int mark() const { return write_pos_; }
+  void revert(int mark) { write_pos_ = mark; }
+  void move();
+  void clear() { write_pos_ = read_pos_ = 0; }
 
   const char operator[](int sub) const { return store_[sub + read_pos_]; }
  private:

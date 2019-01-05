@@ -24,26 +24,7 @@
 
 namespace tg {
 
-/**
- * A typical HTTP Response
- *
- * HTTP/1.1 200 OK
- * Server: Transgate 1.0
- * Content-Type: text/html
- * Content-Length: chunked(unsupported)/xxxx
- * Connection: close/keep-alive
- * Date: Mon, 03 Dec 2018 13:29:44 GMT
- *
- * <html>
- *  <head>
- *    <title>HTML Example</title>
- *  </head>
- *  <body>
- *  </body>
- * </html>
- */
-
-class ContentProvider {
+class ContentProvider : Noncopyable {
  public:
   explicit ContentProvider(std::shared_ptr<WriteLoop> wl, std::shared_ptr<HttpRequest> req):
     write_loop_(std::move(wl)), request_(std::move(req)) {}

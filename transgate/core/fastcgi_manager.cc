@@ -13,6 +13,7 @@
 //  limitations under the License.
 
 #include "fastcgi_manager.h"
+#include <iostream>
 
 namespace tg {
 
@@ -44,26 +45,58 @@ void FastcgiManager::poll() {
     if (it.check(kEPReadable)) {
       switch (obj->stage()) {
       case kFSRecving:
+        obj->gateway()->read(obj->buffer());
+        obj->consume();
+        if (obj->parse_end()) {
+          epoll_.modify(EpollEvent(id, ETEOReadable()));
+          obj->set_stage(kFSForwarding);
+        } else if (obj->isHeaderEnds()) {
+          epoll_.modify(EpollEvent(id, ETEOReadable()));
+          obj->set_stage(kFSParsing);
+        } else {
+          epoll_.modify(EpollEvent(id, ETEOReadable()));
+          break;
+        }
       case kFSParsing:
+        if (obj->stage() == kFSParsing) {
+          obj->parse();
+          obj->set_stage(kFSForwarding);
+        } else if (obj->stage() == kFSForwarding) {
+        } else {
+          providing_map_.erase(id);
+          epoll_.remove(it);
+          break;
+        }
       case kFSForwarding:
+        obj->gateway()->read(obj->buffer());
+        obj->consume();
+        obj->provide();
+        if (obj->forward_end()) {
+          providing_map_.erase(id);
+          epoll_.remove(it);
+        } else {
+          epoll_.modify(EpollEvent(id, ETEOReadable()));
+        }
       default:
         break;
       }
-    }
-
-    if (it.check(kEPWriteable)) {
+    } else if (it.check(kEPWriteable)) {
       switch (obj->stage()) {
-      case kFSBegin: // 连接已完成
+      case kFSBegin:
         obj->set_stage(kFSConnected);
       case kFSConnected:
-        // 准备发送给fcgi的数据
-        break;
-      case kFSSending:    // 继续发送
-        // 继续发送
-        // if (发送完了) obj->set_stage(kFSSent); 并开始监听obj事件
-        // TODO: 想到一个优化，write_loop在发现一致时应该直接合并了
+        obj->makeRequest();
+        if (obj->stage() == kFSConnected) {
+          obj->set_stage(kFSSent);
+        } else {
+          providing_map_.erase(id);
+          epoll_.remove(it);
+          break;
+        }
       case kFSSent:
-
+        obj->buffer()->clear();
+        obj->set_stage(kFSRecving);
+        epoll_.modify(EpollEvent(id, ETEOReadable()));
       default:
         break;
       }

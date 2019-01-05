@@ -14,7 +14,6 @@
 
 #include "user_manager.h"
 
-#include "user.h"
 #include "core_marks.h"
 
 namespace tg {
@@ -56,7 +55,7 @@ void UserManager::doReadable(int id, long time) {
   std::unique_ptr<User> &user = table_[id];
   user->onRead();
   if (user->get_interaction_buffer()->get_mark(kCMFcgi)) {
-
+    fcgimgr_.delegate(user->get_interaction_buffer()->read_cast<FastcgiProvider>());
   }
   user->touch(time);
 }

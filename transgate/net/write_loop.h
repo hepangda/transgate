@@ -40,10 +40,16 @@ class WriteLoop {
   void appendChore(Callable f) { q_.emplace_back(f); }
 
   int write(int bytes) { return buffer_->write(bytes); }
+  int write(void *src, int bytes) { return buffer_->write(static_cast<char *>(src), bytes); }
   int write(const char *src, int bytes) { return buffer_->write(src, bytes); }
   int write(const char *src) { return buffer_->write(src); }
   int write(const std::string &str, int bytes = -1) { return buffer_->write(str, bytes); }
   int swrite(const char *format, ...);
+
+  int writeable() const { return buffer_->writeable(); }
+  void move() { return buffer_->move(); }
+  int mark() const { return buffer_->mark(); }
+  void revert(int mark) { buffer_->revert(mark); }
  private:
   int fd_;
   std::unique_ptr<CharBuffer> buffer_;

@@ -5,6 +5,7 @@
   "server": {
     "port": 8080,
     "max_content_length": 8192,
+    "comments": "keep_connection_time: 1 for 0.1s",
     "keep_connection_time": 20,
     "instances": 0
   },

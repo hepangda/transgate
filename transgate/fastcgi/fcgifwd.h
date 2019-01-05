@@ -36,15 +36,6 @@ enum FcgiPacketType {
   kFPTUnknown = 11,
 };
 
-struct FcgiHeader {
-  uint8_t version;
-  uint8_t type;
-  uint16_t request_id;
-  uint16_t content_length;
-  uint8_t padding_length;
-  uint8_t reserved;
-};
-
 enum FcgiRole : uint16_t {
   kFRResponder = 1,
   kFRAuthorizer = 2,
@@ -55,12 +46,6 @@ enum FcgiFlags : uint8_t {
   kFFKeepConnection = 1,
 };
 
-struct FcgiBeginRequestBody {
-  uint16_t role;
-  uint8_t flags;
-  uint8_t reserved[5];
-};
-
 enum FcgiProtocolStatus : uint8_t {
   kFPSRequestComplete = 0,
   kFPSCantMultiplexConnection = 1,
@@ -68,26 +53,59 @@ enum FcgiProtocolStatus : uint8_t {
   kFPSUnknownRole = 3,
 };
 
+struct FcgiHeader {
+  unsigned char version;
+  unsigned char type;
+  unsigned char requestIdB1;
+  unsigned char requestIdB0;
+  unsigned char contentLengthB1;
+  unsigned char contentLengthB0;
+  unsigned char paddingLength;
+  unsigned char reserved;
+};
+
+struct FcgiBeginRequestBody {
+  unsigned char roleB1;
+  unsigned char roleB0;
+  unsigned char flags;
+  unsigned char reserved[5];
+};
+
 struct FcgiEndRequestBody {
-  uint32_t app_status;
-  uint8_t protocol_status;
-  uint8_t reserved[3];
+  unsigned char appStatusB3;
+  unsigned char appStatusB2;
+  unsigned char appStatusB1;
+  unsigned char appStatusB0;
+  unsigned char protocolStatus;
+  unsigned char reserved[3];
 };
 
 struct FcgiParamsBody {
-  uint32_t name_length;
-  uint32_t value_length;
+  unsigned char nameLengthB3;
+  unsigned char nameLengthB2;
+  unsigned char nameLengthB1;
+  unsigned char nameLengthB0;
+  unsigned char valueLengthB3;
+  unsigned char valueLengthB2;
+  unsigned char valueLengthB1;
+  unsigned char valueLengthB0;
+};
+
+struct FcgiPreread {
+  FcgiPacketType type;
+  int requestId;
+  int contentLength;
+  int paddingLength;
 };
 
 using FcgiParamsPtr = std::unique_ptr<char[]>;
 
-
 std::unique_ptr<FcgiHeader> FcgiMakeHeader(FcgiPacketType type, int content_length, int padding_length, int req_id);
-std::unique_ptr<FcgiBeginRequestBody> FcgiMakeBeginRequestBody(FcgiRole role, FcgiFlags flags);
-std::unique_ptr<FcgiEndRequestBody> FcgiMakeEndRequestBody(int app, FcgiProtocolStatus protocol);
+std::unique_ptr<FcgiBeginRequestBody> FcgiMakeBeginRequestBody(FcgiRole role, bool keep_alive);
 FcgiParamsPtr FcgiMakeParams(int name_length, int value_length, const char *name, const char *value);
 FcgiParamsPtr FcgiMakeParams(std::string name, std::string value);
 
+std::unique_ptr<FcgiPreread> FcgiGetHeader(const void *src);
 }
 
 #endif // TRANSGATE_FCGI_TYPES_H

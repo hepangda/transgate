@@ -32,9 +32,9 @@ class TcpSocket : public Copyable, public LinuxFile {
   virtual ~TcpSocket() { if (socket_fd_ == -1) close(); }
 
   int read(void *buffer, int length, int flags = 0) const;
-  int read(std::shared_ptr<CharBuffer> &buffer, int length = -1, int flags = 0) const;
+  int read(std::shared_ptr<CharBuffer> buffer, int length = -1, int flags = 0) const;
 
-  int write(void *buffer, int length, int flags = 0) const;
+  int write(const void *buffer, int length, int flags = 0) const;
 
   int setNonblockAndCloseExec();
   int setNonblock();

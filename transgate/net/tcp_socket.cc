@@ -23,7 +23,7 @@ int TcpSocket::read(void *buffer, int length, int flags) const {
   return static_cast<int>(::recv(socket_fd_, buffer, static_cast<size_t >(length), flags));
 }
 
-int TcpSocket::read(std::shared_ptr<CharBuffer> &buffer, int length, int flags) const {
+int TcpSocket::read(std::shared_ptr<CharBuffer> buffer, int length, int flags) const {
   if (length == -1 || length > buffer->writeable()) {
     length = buffer->writeable();
   }
@@ -36,7 +36,7 @@ int TcpSocket::read(std::shared_ptr<CharBuffer> &buffer, int length, int flags) 
   return read_bytes;
 }
 
-int TcpSocket::write(void *buffer, int length, int flags) const {
+int TcpSocket::write(const void *buffer, int length, int flags) const {
   return static_cast<int>(::send(socket_fd_, buffer, static_cast<size_t>(length), flags));
 }
 
