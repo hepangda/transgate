@@ -12,8 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "transgate/core/tg.h"
-#include "transgate/utils/concurrency_proxy.h"
+#include "core/tg.h"
+#include "utils/concurrency_proxy.h"
 
 #include <iostream>
 int main(int argc, const char *argv[]) {

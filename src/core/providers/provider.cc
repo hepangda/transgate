@@ -52,7 +52,7 @@ int Provider::writeCRLF() {
 
 int Provider::provideError() {
   static const char templat[] = "<html><head><title>Transgate/HTTP Error</title></head>"
-                                "<body><h1>%d %s</h1><hr />Powered by transgate %s.</body></html>\r\n";
+                                "<body><h1>%d %s</h1><hr />Powered by src %s.</body></html>\r\n";
 
   auto buffer = std::make_unique<char[]>(256);
   auto code = static_cast<int>(request_->code());
