@@ -105,7 +105,7 @@ CPU: Core i7 6700HQ
 
 测试所用命令：
 ``` bash
-./webbench http://127.0.0.1:8080/ -2 --get -c <客户端数量>
+./webbench http://127.0.0.1:<端口号>/ -2 --get -c <客户端数量>
 ```
 
 对比对象：Apache Httpd/2.4.38
