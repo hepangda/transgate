@@ -52,7 +52,42 @@ sudo cp ../transgate.json /etc/transgate
 
 ## 配置文件说明
 
-项目根目录下已具有一示例性配置文件`transgate.json`，文件中各个配置项的意义如下：
+项目根目录下已具有一示例性配置文件`transgate.json`，配置文件为json格式，并且应当存放在`/etc/transgate`目录下。配置文件下各个项目的意义如下：
+
+`evloop/epoll_events`: 调节Reactor一次处理的事件数
+
+`server/port`: 服务器监听的端口
+
+`server/max_content_length`: 最长可接受的Content-Length 
+
+`server/keep_connection_time`: 无活动状态下最长连接时间，单位100ms
+
+`server/instances`: 服务器线程数，0表示处理器核心数
+
+`sites`: 一个数组，表示站点
+
+`[sites]/enable`: 该站点设置是否启用
+
+`[sites]/host`: 匹配的Host，<any>表示所有。
+
+`[sites]/wwwroot`: 网站根目录位置
+
+`[sites]/default_files`: 数组，默认文件
+
+`[sites]/forbidden_regexes`: 数组，禁止访问的正则表达式
+
+`[sites]/fastcgi`: 一个数组，表示FastCGI设置
+
+`[sites]/[fastcgi]/enable`: 该FastCGI设置是否启用
+
+`[sites]/[fastcgi]/mode`: FastCGI连接方式，目前只能指定为`tcp`
+
+`[sites]/[fastcgi]/gateway`: FastCGI的网关
+
+`[sites]/[fastcgi]/port`: FastCGI的端口号
+
+`[sites]/[fastcgi]/extends`: 该设置对应的配置拓展名
+
 
 ## 性能测试
 
@@ -68,3 +103,33 @@ CPU: Core i7 6700HQ
 
 ### 测试结果
 
+测试所用命令：
+``` bash
+./webbench http://127.0.0.1:8080/ -2 --get -c <客户端数量>
+```
+
+对比对象：Apache Httpd/2.4.38
+
+#### 1个客户端
+
+Transgate: 637748 pages/min, 6717617 bytes/sec.
+![Transgate 1 client](/img/tg1.png)
+
+Apache: 354810 pages/min, 3849710 bytes/sec.
+![Apache 1 client](/img/ap1.png)
+
+#### 8个客户端
+
+Transgate: 3148636 pages/min, 33165654 bytes/sec.
+![Transgate 8 clients](/img/tg8.png)
+
+Apache: 2048498 pages/min, 22226226 bytes/sec.
+![Apache 8 clients](/img/ap8.png)
+
+#### 7777个客户端
+
+Transgate: 3734010 pages/min, 39331556 bytes/sec.
+![Transgate 7777 clients](/img/tg7777.png)
+
+Apache: 2205992 pages/min, 23934970 bytes/sec.
+![Apache 7777 clients](/img/ap7777.png)
