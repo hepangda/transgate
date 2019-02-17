@@ -110,26 +110,30 @@ CPU: Core i7 6700HQ
 
 对比对象：Apache Httpd/2.4.38
 
+#### 结果图表
+
+![Result Chart](img/chart.png)
+
 #### 1个客户端
 
 **Transgate**: 637748 pages/min, 6717617 bytes/sec.
-![Transgate 1 client](/img/tg1.png)
+![Transgate 1 client](img/tg1.png)
 
 **Apache**: 354810 pages/min, 3849710 bytes/sec.
-![Apache 1 client](/img/ap1.png)
+![Apache 1 client](img/ap1.png)
 
 #### 8个客户端
 
 **Transgate**: 3148636 pages/min, 33165654 bytes/sec.
-![Transgate 8 clients](/img/tg8.png)
+![Transgate 8 clients](img/tg8.png)
 
 **Apache**: 2048498 pages/min, 22226226 bytes/sec.
-![Apache 8 clients](/img/ap8.png)
+![Apache 8 clients](img/ap8.png)
 
 #### 7777个客户端
 
 **Transgate**: 3734010 pages/min, 39331556 bytes/sec.
-![Transgate 7777 clients](/img/tg7777.png)
+![Transgate 7777 clients](img/tg7777.png)
 
 **Apache**: 2205992 pages/min, 23934970 bytes/sec.
-![Apache 7777 clients](/img/ap7777.png)
+![Apache 7777 clients](img/ap7777.png)
