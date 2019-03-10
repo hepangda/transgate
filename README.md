@@ -123,15 +123,19 @@ ab -n 500000 -c 1 http://127.0.0.1:<端口号>/
 对比对象: Apache Httpd/2.4.38 + Nginx 1.14.2
 
 完成时间（越少越好）：
+
 ![Time taken for tests](img/2b.png)
 
 每秒完成的请求数（越多越好）：
+
 ![Requests per second](img/2c.png)
 
 每个请求花费的时间（越少越好）：
+
 ![Time per request](img/2d.png)
 
 百分比请求完成时间（越少越好）：
+
 ![percentage](img/2eg.png)
 
 #### 512个客户端测试
@@ -144,13 +148,17 @@ ab -n 500000 -c 512 http://127.0.0.1:<端口号>/
 对比对象: Apache Httpd/2.4.38 + Nginx 1.14.2
 
 完成时间（越少越好）：
+
 ![Time taken for tests](img/b.png)
 
 每秒完成的请求数（越多越好）：
+
 ![Requests per second](img/c.png)
 
 每个请求花费的时间（越少越好）：
+
 ![Time per request](img/d.png)
 
 百分比请求完成时间（越少越好）：
+
 ![percentage](img/eg.png)
