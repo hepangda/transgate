@@ -98,10 +98,9 @@ CPU: Core i7 6700HQ
 内存：8 GiB
 网卡：Realtek 1000M + Intel(R) Dual Band Wireless-AC 3165
 操作系统：Arch Linux
-测试项目：WebBench v1.5
 ```
 
-### 测试结果
+### 测试项目：WebBench v1.5
 
 测试所用命令：
 ``` bash
@@ -110,30 +109,48 @@ CPU: Core i7 6700HQ
 
 对比对象：Apache Httpd/2.4.38
 
-#### 结果图表
-
 ![Result Chart](img/chart.png)
 
-#### 1个客户端
+### 测试项目：ApacheBench v2.3
 
-**Transgate**: 637748 pages/min, 6717617 bytes/sec.
-![Transgate 1 client](img/tg1.png)
+#### 单客户端测试
 
-**Apache**: 354810 pages/min, 3849710 bytes/sec.
-![Apache 1 client](img/ap1.png)
+测试所用命令：
+``` bash
+ab -n 500000 -c 1 http://127.0.0.1:<端口号>/
+```
 
-#### 8个客户端
+对比对象: Apache Httpd/2.4.38 + Nginx 1.14.2
 
-**Transgate**: 3148636 pages/min, 33165654 bytes/sec.
-![Transgate 8 clients](img/tg8.png)
+完成时间（越少越好）：
+![Time taken for tests](img/2b.png)
 
-**Apache**: 2048498 pages/min, 22226226 bytes/sec.
-![Apache 8 clients](img/ap8.png)
+每秒完成的请求数（越多越好）：
+![Requests per second](img/2c.png)
 
-#### 7777个客户端
+每个请求花费的时间（越少越好）：
+![Time per request](img/2d.png)
 
-**Transgate**: 3734010 pages/min, 39331556 bytes/sec.
-![Transgate 7777 clients](img/tg7777.png)
+百分比请求完成时间（越少越好）：
+![percentage](img/2eg.png)
 
-**Apache**: 2205992 pages/min, 23934970 bytes/sec.
-![Apache 7777 clients](img/ap7777.png)
+#### 512个客户端测试
+
+测试所用命令：
+``` bash
+ab -n 500000 -c 512 http://127.0.0.1:<端口号>/
+```
+
+对比对象: Apache Httpd/2.4.38 + Nginx 1.14.2
+
+完成时间（越少越好）：
+![Time taken for tests](img/b.png)
+
+每秒完成的请求数（越多越好）：
+![Requests per second](img/c.png)
+
+每个请求花费的时间（越少越好）：
+![Time per request](img/d.png)
+
+百分比请求完成时间（越少越好）：
+![percentage](img/eg.png)
