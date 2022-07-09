@@ -9,35 +9,36 @@
   |_|   |_|  \_\ /_/   |_| |_|  \_| /_____/ \_____/ /_/   |_|   |_|   |_____| 
 ```
 
-transgate是一个运行于Linux平台上的Web服务器，它由C++ 14编写，目前支持处理HTTP/1.1的静态GET请求以及FastCGI请求，支持通过配置文件配置多站点、FastCGI、最长空闲时间等功能。
+Transgate is a web server running on Linux platform, it is written in C++ 14, currently supports handling HTTP/1.1 static GET requests as well as FastCGI requests, supports configuration of multiple sites, FastCGI, maximum idle time, etc. through configuration files.
 
-## 特点
+## Advantages
 
-1. 高性能。采用多线程异步I/O多路复用模型，请求处理速度较快。
-2. 低占用，低泄露。内存采用智能指针管理，理论上无内存泄露。同时内存已进行合理的预分配，减少了不必要的内存占用。
-3. 配置简易。使用JSON格式单配置文件，附带初始配置文档，简单需求下不需要更改过多的配置项。
-4. 运行简单。直接在后台执行即可提供持续的Web服务。
-5. 稳定性高。
+1. High performance. Using multi-threaded asynchronous I/O multiplexing model, the request processing speed is faster.
+2. Low occupancy, low leakage. Memory is managed by intelligent pointer, theoretically no memory leakage. Also memory has been reasonably pre-allocated, reducing unnecessary memory occupation.
+3. Easy to configure. Using a single configuration file in JSON format, with the initial configuration document, there is no need to change too many configuration items under simple requirements.
+4. Simple to run. It can be executed directly in the background to provide continuous Web services. 
+5. High stability.
 
-## 特性
+## Features
 
-1. HTTP请求剖析器(src/http/http_parser.*)；
-2. 支持处理普通GET请求；
-3. 支持处理FastCGI请求(如php-fpm)；
-4. HTTP 1.1部分特性，包括长连接及最长无活动连接时间限制；
+1. HTTP request parser (src/http/http_parser.*).
+2. Support for handling normal GET requests.
+3. Support for handling FastCGI requests (e.g. php-fpm).
+4. Some HTTP 1.1 features, including long connections and maximum inactive connection time limits.
 
-## 安装和运行
+## Install & Run
 
-安装前，你需要确保你的机器已经正确配置了cmake 3.0以上的版本，你可在软件源中下载并安装cmake。
+Before installing, you need to make sure your machine is properly configured with cmake version 3.0 or higher, you can download and install cmake from the software repository.
 
 ``` bash
 # Ubuntu
 sudo apt-get install cmake
+
 # Arch Linux
 sudo pacman -S cmake
 ```
 
-安装之前，你可能需要保证你的Linux内核已经完整支持了`SO_REUSEPORT`特性。然后通过`git`或其他方法下载源代码。之后进入源代码目录，然后执行以下命令完成安装：
+Before installing, you may need to ensure that your Linux kernel has full support for the `SO_REUSEPORT` feature. Then download the source code via `git` or other methods. After that, go to the source code directory and then execute this command
 
 ``` bash
 mkdir build
@@ -48,117 +49,119 @@ sudo mkdir /etc/transgate
 sudo cp ../transgate.json /etc/transgate
 ```
 
-之后你可拷贝`build`目录下的`transgate`文件并在任何地方执行它。
+After that you can copy the `transgate` file in the `build` directory and execute it from anywhere.
 
-## 配置文件说明
+## Config file description
 
-项目根目录下已具有一示例性配置文件`transgate.json`，配置文件为json格式，并且应当存放在`/etc/transgate`目录下。配置文件下各个项目的意义如下：
+The project root directory already has an example configuration file `transgate.json`, which is in json format and should be stored in the `/etc/transgate` directory. The meaning of each item under the configuration file is as follows.
 
-`evloop/epoll_events`: 调节Reactor一次处理的事件数
+`evloop/epoll_events`: Adjusts the number of events handled by Reactor at a time
 
-`server/port`: 服务器监听的端口
+`server/port`: Ports that the server listens on
 
-`server/max_content_length`: 最长可接受的Content-Length 
+`server/max_content_length`: Maximum Acceptable Content-Length
 
-`server/keep_connection_time`: 无活动状态下最长连接时间，单位100ms
+`server/keep_connection_time`: Maximum connection time without activity in 100ms
 
-`server/instances`: 服务器线程数，0表示处理器核心数
+`server/instances`: Number of server threads, 0 means number of processor cores
 
-`sites`: 一个数组，表示站点
+`sites`: An array that represents the site
 
-`[sites]/enable`: 该站点设置是否启用
+`[sites]/enable`: Is this site setting enabled
 
-`[sites]/host`: 匹配的Host，<any>表示所有。
+`[sites]/host`: Matching Hosts, <any> means all.
 
-`[sites]/wwwroot`: 网站根目录位置
+`[sites]/wwwroot`: Website root directory location
 
-`[sites]/default_files`: 数组，默认文件
+`[sites]/default_files`: Array, default file
 
-`[sites]/forbidden_regexes`: 数组，禁止访问的正则表达式
+`[sites]/forbidden_regexes`: Arrays, regular expressions forbidden to access
 
-`[sites]/fastcgi`: 一个数组，表示FastCGI设置
+`[sites]/fastcgi`: An array representing FastCGI settings
 
-`[sites]/[fastcgi]/enable`: 该FastCGI设置是否启用
+`[sites]/[fastcgi]/enable`: Whether this FastCGI setting is enabled or not
 
-`[sites]/[fastcgi]/mode`: FastCGI连接方式，目前只能指定为`tcp`
+`[sites]/[fastcgi]/mode`: FastCGI connection method, currently only `tcp` can be specified
 
-`[sites]/[fastcgi]/gateway`: FastCGI的网关
+`[sites]/[fastcgi]/gateway`: Gateway of FastCGI
 
-`[sites]/[fastcgi]/port`: FastCGI的端口号
+`[sites]/[fastcgi]/port`: Port number of FastCGI
 
-`[sites]/[fastcgi]/extends`: 该设置对应的配置拓展名
+`[sites]/[fastcgi]/extends`: This setting corresponds to the extension-name of the configuration
 
 
-## 性能测试
+## Performance Testing
 
-### 测试环境
+### Test Environment
 
 ```
 CPU: Core i7 6700HQ
-内存：8 GiB
-网卡：Realtek 1000M + Intel(R) Dual Band Wireless-AC 3165
-操作系统：Arch Linux
+Memory: 8 GiB
+NIC: Realtek 1000M + Intel(R) Dual Band Wireless-AC 3165
+OS: Arch Linux
 ```
 
-### 测试项目：WebBench v1.5
+### Test Item：WebBench v1.5
 
-测试所用命令：
+Command used for testing：
 ``` bash
-./webbench http://127.0.0.1:<端口号>/ -2 --get -c <客户端数量>
+./webbench http://127.0.0.1:<port>/ -2 --get -c <client numbers>
 ```
 
-对比对象：Apache Httpd/2.4.38
+Comparison program: Apache Httpd/2.4.38
 
 ![Result Chart](img/chart.png)
 
-### 测试项目：ApacheBench v2.3
+### Test Item：ApacheBench v2.3
 
-#### 单客户端测试
+#### 1 client
 
-测试所用命令：
+Command used for testing
+
 ``` bash
-ab -n 500000 -c 1 http://127.0.0.1:<端口号>/
+ab -n 500000 -c 1 http://127.0.0.1:<port>/
 ```
 
-对比对象: Apache Httpd/2.4.38 + Nginx 1.14.2
+Comparison program: Apache Httpd/2.4.38 + Nginx 1.14.2
 
-完成时间（越少越好）：
+Completion time (less is better):
 
 ![Time taken for tests](img/2b.png)
 
-每秒完成的请求数（越多越好）：
+Number of requests completed per second (more is better):
 
 ![Requests per second](img/2c.png)
 
-每个请求花费的时间（越少越好）：
+Time spent per request (less is better):
 
 ![Time per request](img/2d.png)
 
-百分比请求完成时间（越少越好）：
+Time to completion per percentage request (less is better):
 
 ![percentage](img/2eg.png)
 
-#### 512个客户端测试
+#### 512 clients
 
-测试所用命令：
+Command used for testing:
+
 ``` bash
-ab -n 500000 -c 512 http://127.0.0.1:<端口号>/
+ab -n 500000 -c 512 http://127.0.0.1:<port>/
 ```
 
-对比对象: Apache Httpd/2.4.38 + Nginx 1.14.2
+Comparison program: Apache Httpd/2.4.38 + Nginx 1.14.2
 
-完成时间（越少越好）：
+Completion time (less is better):
 
 ![Time taken for tests](img/b.png)
 
-每秒完成的请求数（越多越好）：
+Number of requests completed per second (more is better):
 
 ![Requests per second](img/c.png)
 
-每个请求花费的时间（越少越好）：
+Time spent per request (less is better):
 
 ![Time per request](img/d.png)
 
-百分比请求完成时间（越少越好）：
+Time to completion per percentage request (less is better):
 
 ![percentage](img/eg.png)
